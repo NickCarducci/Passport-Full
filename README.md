@@ -67,25 +67,53 @@ npm -v
 # scp -r . root@178.156.240.36:~/
 # rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/
 # mkdir -p microservice && mv firestore.rules index.js package.json passport-service.json README.md TV microservice/
-rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/microservice/
+# rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/microservice/
+
+chmod 750 /root
+chmod 700 /root/.ssh
+chmod 600 /root/.ssh/authorized_keys
 
 sudo npm install -g pm2
 pm2 -v
 
+rsync -avz -e "ssh -i ~/.ssh/id_ed25519.pub" --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/microservice/
+
 cd microservice
 
-# Install the engines
+# Install the engines; if you use TypeScript/NestJS, rebuild: npm run build
 npm install
 
 # Start the fire
 pm2 start index.js --name "microservice-process"
 pm2 save
 
+# Tell PM2 to kill the old process and start the new one
+pm2 restart microservice-process --update-env
+
 pm2 logs microservice-process
 # [TAILING] Tailing last 15 lines for [microservice-process] process (change the value with --lines option)
 # /root/.pm2/logs/microservice-process-error.log last 15 lines:
 # /root/.pm2/logs/microservice-process-out.log last 15 lines:
 # 0|TV  | 💚 Health check: http://localhost:8080/health
+
+# Diagnose
+pm2 logs microservice-process --lines 100
+
+cat ~/.pm2/logs/microservice-process-error.log
+
+pm2 logs microservice-process
+
+pm2 status
+
+curl -I http://localhost:8080
+# HTTP/1.1 200 OK
+# X-Powered-By: Express
+# Content-Type: text/html; charset=utf-8
+# Content-Length: 9
+# ETag: W/"9-+ADclISKd7HhhWl3Max2maeEh3c"
+# Date: Mon, 09 Feb 2026 20:33:26 GMT
+# Connection: keep-alive
+# Keep-Alive: timeout=5
 
 apt update && apt install caddy -y
 
@@ -102,20 +130,6 @@ ufw enable
 # Edit /etc/caddy/Caddyfile with routing from :80 or the custom domain for proper SSL
 sudo chown -R root:caddy /var/www/webapp
 sudo chmod -R 755 /var/www/webapp
-
-# If you added new npm packages to your package.json, run this:
-npm install
-
-# If you use TypeScript/NestJS, rebuild:
-npm run build
-
-# Tell PM2 to kill the old process and start the new one
-pm2 restart microservice-process --update-env
-
-# Diagnose
-pm2 logs microservice-process --lines 100
-
-cat ~/.pm2/logs/microservice-process-error.log
 
 # If you need to reload caddy
 sudo systemctl reload caddy

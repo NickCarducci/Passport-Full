@@ -105,7 +105,8 @@ fs.writeFile('/firebaseService', process.env.firebaseService, err => {
   }
 });*/
 //const serviceAccount = require('./passport-service.json');
-const jsonData = JSON.parse(process.env.FIREBASE_SERVICE);
+//const jsonData = JSON.parse(process.env.FIREBASE_SERVICE);
+const jsonData = require("./passport-service.json");
 initializeApp({
   credential: cert(jsonData)
 });
