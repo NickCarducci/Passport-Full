@@ -61,14 +61,18 @@ npm -v
 > open another cli window and cd into **your project** (i.e. index.js) with backend folder inside it, then:
 
 ```
-# scp -r . root@178.156.240.36:~/
-# rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/
-
+# scp -r ./TV root@178.156.240.36:~/
 # ~~Move into the folder that just arrived~~
 # cd ~/TV
+# scp -r . root@178.156.240.36:~/
+# rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/
 # mkdir -p passport && mv firestore.rules index.js package.json passport-service.json README.md TV passport/
-
 rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/passport/
+
+sudo npm install -g pm2
+pm2 -v
+
+cd passport
 
 # Install the engines
 npm install
