@@ -1,6 +1,9 @@
 passport-service.json
 
 node_modules/
+package-lock.json
 .DS_Store
 *.xcuserstate
 xcuserdata/
+
+.env
