@@ -66,29 +66,26 @@ npm -v
 # cd ~/TV
 # scp -r . root@178.156.240.36:~/
 # rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/
-# mkdir -p passport && mv firestore.rules index.js package.json passport-service.json README.md TV passport/
-rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/passport/
+# mkdir -p microservice && mv firestore.rules index.js package.json passport-service.json README.md TV microservice/
+rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/microservice/
 
 sudo npm install -g pm2
 pm2 -v
 
-cd passport
+cd microservice
 
 # Install the engines
 npm install
 
 # Start the fire
-pm2 start index.js --name "TV"
+pm2 start index.js --name "microservice-process"
 pm2 save
 
-pm2 logs TV
-# [TAILING] Tailing last 15 lines for [TV] process (change the value with --lines option)
-# /root/.pm2/logs/TV-error.log last 15 lines:
-# /root/.pm2/logs/TV-out.log last 15 lines:
-# 0|TV  | 🚀 IDWise Webhook Handler running on port 8080
-# 0|TV  | 📍 Webhook endpoint: http://localhost:8080/webhook
+pm2 logs microservice-process
+# [TAILING] Tailing last 15 lines for [microservice-process] process (change the value with --lines option)
+# /root/.pm2/logs/microservice-process-error.log last 15 lines:
+# /root/.pm2/logs/microservice-process-out.log last 15 lines:
 # 0|TV  | 💚 Health check: http://localhost:8080/health
-# 0|TV  | ✅ MongoDB connected successfully
 
 apt update && apt install caddy -y
 
@@ -113,12 +110,12 @@ npm install
 npm run build
 
 # Tell PM2 to kill the old process and start the new one
-pm2 restart backend --update-env
+pm2 restart microservice-process --update-env
 
 # Diagnose
-pm2 logs backend --lines 100
+pm2 logs microservice-process --lines 100
 
-cat ~/.pm2/logs/backend-error.log
+cat ~/.pm2/logs/microservice-process-error.log
 
 # If you need to reload caddy
 sudo systemctl reload caddy
@@ -189,7 +186,7 @@ The system uses **Sign In with Microsoft** integrated with Firebase. The backend
 
 ### Infrastructure
 
-- **Backend**: Node.js API hosted on Hetzner Cloud.
+- **Bmicroservice-process**: Node.js API hosted on Hetzner Cloud.
 - **Database**: Google Firestore (Firebase).
 - **Web**: Hosted at passport.monmouth.edu.
 - **iOS**: Built with SwiftUI using a Focal Point Architecture for high-performance gesture navigation.
