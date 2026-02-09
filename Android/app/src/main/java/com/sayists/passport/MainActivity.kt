@@ -181,7 +181,7 @@ class MainActivity : AppCompatActivity() {
 
         val body = json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
         val request = Request.Builder()
-            .url("https://starfish-app-x5itk.ondigitalocean.app/attend")
+            .url("https://pass.contact/api/attend")
             .post(body)
             .build()
 

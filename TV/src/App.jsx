@@ -251,7 +251,7 @@ export default class App extends React.Component {
     const { attendingEventId, user } = this.state;
     if (!attendingEventId || !user) return;
 
-    fetch("https://starfish-app-x5itk.ondigitalocean.app/attend", {
+    fetch("/api/attend", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

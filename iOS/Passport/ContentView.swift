@@ -352,7 +352,7 @@ struct ContentView: View {
                                        "address": address,
                                        "fullName": fullName,
                                        "username": username]
-            let urlString = "https://starfish-app-x5itk.ondigitalocean.app/attend"
+            let urlString = "https://pass.contact/api/attend"
             let url = URL(string: urlString)!
             print("searching \(urlString)")
             var request = URLRequest(url: url)

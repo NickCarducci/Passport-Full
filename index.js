@@ -273,15 +273,9 @@ issue
     });
   });
 //https://stackoverflow.com/questions/31928417/chaining-multiple-pieces-of-middleware-for-specific-route-in-expressjs
-app.use(nonbody, issue); //methods on express.Router() or use a scoped instance
+app.use("/api", nonbody, issue); //methods on express.Router() or use a scoped instance
 
-// Serve static files from the TV app's build directory
-app.use(express.static(path.join(__dirname, "TV/dist")));
-
-// Catch-all route to serve the TV app's index.html for client-side routing
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "TV/dist", "index.html"));
-});
+app.get("/health", (req, res) => res.status(200).send("ok"));
 
 app.listen(port, () => console.log(`localhost:${port}`));
 process.stdin.resume(); //so the program will not close instantly

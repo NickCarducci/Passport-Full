@@ -75,9 +75,19 @@ chmod 600 /root/.ssh/authorized_keys
 
 sudo npm install -g pm2
 pm2 -v
+```
+
+> switch back to local cli window
+
+```
+rm -rf node_modules
 
 rsync -avz -e "ssh -i ~/.ssh/id_ed25519.pub" --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/microservice/
+```
 
+> switch back to remote-server cli window
+
+```
 cd microservice
 
 # Install the engines; if you use TypeScript/NestJS, rebuild: npm run build
@@ -100,8 +110,6 @@ pm2 logs microservice-process
 pm2 logs microservice-process --lines 100
 
 cat ~/.pm2/logs/microservice-process-error.log
-
-pm2 logs microservice-process
 
 pm2 status
 
@@ -141,9 +149,6 @@ nano /etc/caddy/Caddyfile
 
 :80 {
     # 1. API & Backend Routes (Traffic goes to Node.js)
-    handle /admin/* {
-        reverse_proxy localhost:8080
-    }
     handle /api/* {
         reverse_proxy localhost:8080
     }
@@ -151,9 +156,6 @@ nano /etc/caddy/Caddyfile
         reverse_proxy localhost:8080
     }
     handle /health {
-        reverse_proxy localhost:8080
-    }
-    handle /apple {
         reverse_proxy localhost:8080
     }
 
