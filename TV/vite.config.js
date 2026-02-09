@@ -9,10 +9,6 @@ export default defineConfig(({ mode }) => ({
   define: {
     "process.env.NODE_ENV": JSON.stringify(mode)
   },
-  server: {
-    port: 3000,
-    open: true
-  },
   build: {
     outDir: "/var/www/webapp", // Target the public Caddy folder
     emptyOutDir: true, // Clear old files before building
@@ -20,10 +16,8 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            // Keep all Firebase modules together to avoid initialization issues
-            if (id.includes("firebase") || id.includes("@firebase")) {
+            if (id.includes("firebase") || id.includes("@firebase"))
               return "firebase";
-            }
             if (
               id.includes("node_modules/react/") ||
               id.includes("node_modules/react-dom/") ||
@@ -34,6 +28,10 @@ export default defineConfig(({ mode }) => ({
               id.includes("node_modules/js-tokens/")
             )
               return "react-vendor";
+            if (id.includes("@react-pdf") || id.includes("pdfkit") || id.includes("fontkit"))
+              return "pdf";
+            if (id.includes("react-router"))
+              return "router";
             return "vendor";
           }
         }

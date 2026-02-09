@@ -208,15 +208,6 @@ export default class App extends React.Component {
     this.isMountCanceled = true;
   };
 
-  componentDidUpdate = (prevProps) => {
-    if (this.props.location !== prevProps.location) {
-      let bumpedFrom =
-        this.props.location.state && this.props.location.state.bumpedFrom
-          ? this.props.location.state.bumpedFrom
-          : this.state.bumpedFrom;
-      this.setState({ bumpedFrom });
-    }
-  };
   // prettier-ignore
   /*const stringAuthObj = (meAuth) => {
       var {
@@ -383,6 +374,13 @@ export default class App extends React.Component {
   };
 
   componentDidUpdate = (prevProps, prevState) => {
+    if (this.props.location !== prevProps.location) {
+      let bumpedFrom =
+        this.props.location.state && this.props.location.state.bumpedFrom
+          ? this.props.location.state.bumpedFrom
+          : this.state.bumpedFrom;
+      this.setState({ bumpedFrom });
+    }
     if (this.state.user?.studentId !== prevState.user?.studentId) {
       if (this.state.user?.studentId) {
         QRCode.toDataURL(this.state.user.studentId, (err, url) => {

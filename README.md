@@ -80,7 +80,7 @@ pm2 -v
 > switch back to local cli window
 
 ```
-rm -rf node_modules
+rm -rf node_modules & rm -rf TV/node_modules
 
 rsync -avz -e "ssh -i ~/.ssh/id_ed25519.pub" --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/microservice/
 ```
