@@ -92,7 +92,7 @@ sudo chmod -R 755 /var/www/webapp
 
 > open another cli window and cd into **your project** (i.e. index.js) with backend folder inside it, then:
 
-````
+```
 scp -r ./backend root@178.156.240.36:~/
 
 # If you added new npm packages to your package.json, run this:
@@ -148,6 +148,7 @@ nano /etc/caddy/Caddyfile
 # Refer to the Caddy docs for more information:
 # https://caddyserver.com/docs/caddyfile
 ```
+
 then replace ":80" below with your domain name.
 
 ```
@@ -181,4 +182,7 @@ The system uses **Sign In with Microsoft** integrated with Firebase. The backend
 - **Database**: Google Firestore (Firebase).
 - **Web**: Hosted at passport.monmouth.edu.
 - **iOS**: Built with SwiftUI using a Focal Point Architecture for high-performance gesture navigation.
-````
+
+```
+
+```
