@@ -1,0 +1,25 @@
+{
+  "short_name": "Passport",
+  "name": "Monmouth University Passport",
+  "icons": [
+    {
+      "src": "MU-logo.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "MU-logo-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "MU-logo-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0078d4",
+  "background_color": "#f3f2f1"
+}

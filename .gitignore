@@ -1,0 +1,6 @@
+passport-service.json
+
+node_modules/
+.DS_Store
+*.xcuserstate
+xcuserdata/

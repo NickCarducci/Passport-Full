@@ -1,0 +1,233 @@
+:root {
+  --primary: #0078d4;
+  --primary-hover: #005a9e;
+  --danger: #d83b01;
+  --bg: #f3f2f1;
+  --card-bg: #ffffff;
+  --text: #323130;
+  --border: #edebe9;
+  --gold: #ffd700;
+  --silver: #c0c0c0;
+  --bronze: #cd7f32;
+}
+
+* {
+  font-family: sans-serif;
+  text-align: center;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.admin-container {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 0 20px;
+  text-align: left;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+  text-align: left;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+input, select {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+  text-align: left;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  font-size: 18px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: white;
+}
+
+.admin-table th {
+  background: #faf9f8;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #605e5c;
+}
+
+.admin-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  text-align: left;
+}
+
+.app-links {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  background-color: #323130;
+  color: white;
+  padding: 0 20px;
+  width: 100%;
+}
+
+.header-title {
+  flex-grow: 1;
+  padding: 10px 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+.header-side {
+  width: auto;
+  display: flex;
+  align-items: center;
+}
+
+/* Leaderboard TV Enhancements */
+.leaderboard-tv-root {
+  background: linear-gradient(135deg, #001e44 0%, #0078d4 100%);
+  min-height: 100vh;
+  color: white;
+  padding: 40px;
+}
+
+.podium-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  margin: 60px 0;
+  height: 300px;
+}
+
+.podium-item {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px 15px 0 0;
+  padding: 20px;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.podium-item:hover { transform: translateY(-10px); }
+
+.rank-1 { height: 100%; border-top: 5px solid var(--gold); order: 2; }
+.rank-2 { height: 80%; border-top: 5px solid var(--silver); order: 1; }
+.rank-3 { height: 70%; border-top: 5px solid var(--bronze); order: 3; }
+
+.medal { font-size: 3rem; margin-bottom: 10px; }
+.podium-name { font-size: 1.5rem; font-weight: bold; margin: 10px 0; }
+.podium-score { font-size: 2.5rem; font-weight: 800; }
+
+.other-leaders-list {
+  max-width: 800px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.leader-row {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px 25px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+/* Login Page Enhancements */
+.login-screen {
+  background: radial-gradient(circle at center, #ffffff 0%, #f3f2f1 100%);
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card-hero {
+  background: white;
+  padding: 50px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  max-width: 500px;
+  width: 90%;
+}
+
+.microsoft-btn {
+  background: #2f2f2f;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.microsoft-btn:hover { background: #000000; }
