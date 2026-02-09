@@ -145,7 +145,6 @@ nano /etc/caddy/Caddyfile
 
 # The Caddyfile is an easy way to configure your Caddy web server.
 # Unless the file starts with a global options block, the first uncommented line is always the address of your site.
-# To use your own domain name (with automatic HTTPS), first make sure your domain's A/AAAA DNS records are properly pointed to this machine's public IP
 
 :80 {
     # 1. API & Backend Routes (Traffic goes to Node.js)
@@ -173,13 +172,21 @@ nano /etc/caddy/Caddyfile
 # https://caddyserver.com/docs/caddyfile
 ```
 
-then replace ":80" below with your domain name.
+> To use your own domain name (with automatic HTTPS), first (1) make sure your domain's A/AAAA DNS records are properly pointed to this machine's public IP (e.g. cloudflare A record NO PROXY)
+
+Then, (2) replace ":80" below with your domain name.
 
 ```
+sudo systemctl reload caddy
+nano /etc/caddy/Caddyfile
+
+# change :80 to your domain
 pass.contact {
     ...
 }
 ```
+
+Now, (3) turn on proxy.
 
 ## Key Features
 
