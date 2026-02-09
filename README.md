@@ -44,8 +44,10 @@ ssh root@178.156.240.36 # replace with your own
 
 # root@ubuntu-2gb-populist:~#
 # Update the source to v23
-curl -fsSL https://deb.nodesource.com | bash -
-apt-get install -y nodejs
+# curl -fsSL https://deb.nodesource.com | bash -
+# curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
 
 # Update npm to the latest major version
 npm install -g npm@latest
@@ -54,24 +56,35 @@ npm install -g npm@latest
 node -v
 npm -v
 
-# Move into the folder that just arrived
-cd ~/backend
+```
+
+> open another cli window and cd into **your project** (i.e. index.js) with backend folder inside it, then:
+
+```
+# scp -r . root@178.156.240.36:~/
+# rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/
+
+# ~~Move into the folder that just arrived~~
+# cd ~/TV
+# mkdir -p passport && mv firestore.rules index.js package.json passport-service.json README.md TV passport/
+
+rsync -avz --exclude='Android' --exclude='iOS' . root@178.156.240.36:~/passport/
 
 # Install the engines
 npm install
 
 # Start the fire
-pm2 start index.js --name "backend"
+pm2 start index.js --name "TV"
 pm2 save
 
-pm2 logs backend
-# [TAILING] Tailing last 15 lines for [backend] process (change the value with --lines option)
-# /root/.pm2/logs/backend-error.log last 15 lines:
-# /root/.pm2/logs/backend-out.log last 15 lines:
-# 0|backend  | 🚀 IDWise Webhook Handler running on port 8080
-# 0|backend  | 📍 Webhook endpoint: http://localhost:8080/webhook
-# 0|backend  | 💚 Health check: http://localhost:8080/health
-# 0|backend  | ✅ MongoDB connected successfully
+pm2 logs TV
+# [TAILING] Tailing last 15 lines for [TV] process (change the value with --lines option)
+# /root/.pm2/logs/TV-error.log last 15 lines:
+# /root/.pm2/logs/TV-out.log last 15 lines:
+# 0|TV  | 🚀 IDWise Webhook Handler running on port 8080
+# 0|TV  | 📍 Webhook endpoint: http://localhost:8080/webhook
+# 0|TV  | 💚 Health check: http://localhost:8080/health
+# 0|TV  | ✅ MongoDB connected successfully
 
 apt update && apt install caddy -y
 
@@ -88,12 +101,6 @@ ufw enable
 # Edit /etc/caddy/Caddyfile with routing from :80 or the custom domain for proper SSL
 sudo chown -R root:caddy /var/www/webapp
 sudo chmod -R 755 /var/www/webapp
-```
-
-> open another cli window and cd into **your project** (i.e. index.js) with backend folder inside it, then:
-
-```
-scp -r ./backend root@178.156.240.36:~/
 
 # If you added new npm packages to your package.json, run this:
 npm install
