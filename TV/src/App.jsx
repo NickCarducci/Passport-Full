@@ -357,12 +357,6 @@ export default class App extends React.Component {
                 <div className="dash-avatar">{emailInitial}</div>
                 <button
                   className="dash-logout-btn"
-                  onClick={() => this.switchAccount()}
-                >
-                  Switch
-                </button>
-                <button
-                  className="dash-logout-btn"
                   onClick={() => {
                     var answer = window.confirm("logout?");
                     answer && logoutofapp();
@@ -480,6 +474,19 @@ export default class App extends React.Component {
                     alt=""
                   />
                   Sign in with Microsoft
+                </button>
+
+                <button
+                  className="microsoft-btn"
+                  style={{ marginTop: "10px", background: "#605e5c" }}
+                  onClick={() => this.switchAccount()}
+                >
+                  <img
+                    src="https://authjs.dev/img/providers/microsoft.svg"
+                    width="20"
+                    alt=""
+                  />
+                  Use a different account
                 </button>
 
                 <div className="app-links">

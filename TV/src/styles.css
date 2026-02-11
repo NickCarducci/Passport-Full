@@ -175,8 +175,8 @@ input:focus, select:focus {
 }
 
 .dash-header-brand {
-  font-weight: 700;
-  font-size: 1.1rem;
+  font-weight: lighter;
+  font-size: 1.3rem;
   color: var(--text);
   letter-spacing: -0.02em;
 }
