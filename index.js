@@ -260,8 +260,7 @@ issue
         {
           eventsAttended: FieldValue.increment(1),
           address: req.body.address || "",
-          fullName: req.body.fullName || "",
-          username: req.body.username || ""
+          fullName: req.body.fullName || ""
         },
         { merge: true }
       );

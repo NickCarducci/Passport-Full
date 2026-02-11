@@ -112,32 +112,32 @@ extension Event: Decodable {
     }
 }
 struct LeaderView: View {
-    @Binding public var username:String
+    public var studentId: String
+    public var username: String
     @Binding public var eventsAttended:Int64
-    let defaults = UserDefaults.standard
     var body: some View {
         HStack{
-            Text("\(username): \(eventsAttended)")
+            Text("\(!username.isEmpty ? username : studentId): \(eventsAttended)")
                 .padding(10)
         }
     }
 }
 struct Leader {
     var id: String
-    var username: String
     var eventsAttended: Int64
+    var username: String
 }
 extension Leader: Decodable {
     enum CodingKeys: String, CodingKey {
         case id = "id"
-        case username = "username"
         case eventsAttended = "eventsAttended"
+        case username = "username"
     }
     init(from decoder: Decoder) throws {
         let podcastContainer = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try podcastContainer.decode(String.self, forKey: .id)
-        self.username = try podcastContainer.decode(String.self, forKey: .username)
         self.eventsAttended = try podcastContainer.decode(Int64.self, forKey: .eventsAttended)
+        self.username = (try? podcastContainer.decode(String.self, forKey: .username)) ?? ""
     }
 }
 
@@ -166,6 +166,7 @@ struct ContentView: View {
     @State var address = ""
     @State var promptAddress = false
     @State var fullName = ""
+    @State var username = ""
     @State var studentId = ""
     @State var addressLine1 = ""
     @State var addressLine2 = ""
@@ -201,7 +202,6 @@ struct ContentView: View {
     #endif
     @State private var isAtBottom = false
     
-    @State var username = ""
     @State private var rocks = [Event]()
     @State private var leaders = [Leader]()
     @State public var show: String = "home"
@@ -282,7 +282,7 @@ struct ContentView: View {
                             
                                 for document in querySnapshot!.documents {
                                         //print("\(document.documentID): \(document.data())")
-                                    let leader = Leader(id: document.documentID,username: document["username"] as? String ?? "",eventsAttended: document["eventsAttended"] as? Int64 ?? 0)
+                                    let leader = Leader(id: document.documentID, eventsAttended: document["eventsAttended"] as? Int64 ?? 0, username: document["username"] as? String ?? "")
                                     //print(post)
                                     
                                     leaders.append(leader)
@@ -314,8 +314,8 @@ struct ContentView: View {
                         leaderboard = leaders.features
                         //print(post)
                         /*leaders.features.forEach { body in
-                            
-                            leaderboard.append(Leader(id: body["id"]as? String ?? "",username: body["username"] as? String ?? "",eventsAttended: body["eventsAttended"] as? Int64 ?? 0))
+
+                            leaderboard.append(Leader(id: body["id"]as? String ?? "", eventsAttended: body["eventsAttended"] as? Int64 ?? 0))
                         }*/
                     }
                 } catch {
@@ -345,13 +345,12 @@ struct ContentView: View {
               }
         }
     }
-    func attendEvent (eventId:String, studentId:String, address:String, fullName:String, username:String) {
+    func attendEvent (eventId:String, studentId:String, address:String, fullName:String) {
         //if studentId == "" {return}
         Task {
             let parameterDictionary = ["eventId" : eventId, "studentId": studentId,
                                        "address": address,
-                                       "fullName": fullName,
-                                       "username": username]
+                                       "fullName": fullName]
             let urlString = "https://pass.contact/api/attend"
             let url = URL(string: urlString)!
             print("searching \(urlString)")
@@ -422,16 +421,14 @@ struct ContentView: View {
                     
                     // Set the "capital" field of the city 'DC'
                     let savedFullName = defaults.object(forKey:"FullName") as? String ?? String()
-                    let savedUsername = defaults.object(forKey:"Username") as? String ?? String()
                     let savedAddress = defaults.object(forKey:"Address") as? String ?? String()
                     do {
-                        
+
                         let document = try await leadersRef.getDocument()
                         if document.exists {
                             try await leadersRef.updateData([
                                 "eventsAttended": FieldValue.increment(Int64(1)),
                                 "fullName": savedFullName,
-                                "username": savedUsername,
                                 "address": savedAddress
                             ])
                             print("Document successfully updated")
@@ -439,7 +436,6 @@ struct ContentView: View {
                             try await leadersRef.setData([
                                 "eventsAttended": FieldValue.increment(Int64(1)),
                                 "fullName": savedFullName,
-                                "username": savedUsername,
                                 "address": savedAddress
                             ])
                             print("Document successfully added")
@@ -612,6 +608,11 @@ struct ContentView: View {
         VStack(alignment: .leading) {
             Text("Profile").font(.title).bold().padding(.horizontal)
             Form {
+                Section(footer: Text("Your username is shown on the leaderboard.")) {
+                    TextField("Username", text: $username)
+                        .font(Font.system(size: 15))
+                        .fontWeight(.semibold)
+                }
                 Section(footer: Text("Enter your mailing address in case you win a gift card.")) {
                     TextField("Full Name \(defaults.object(forKey: "FullName") as? String ?? "Jane Doe")", text: $fullName)
                         .font(Font.system(size: 15))
@@ -644,19 +645,19 @@ struct ContentView: View {
                         .fontWeight(.semibold)
                         .onChange(of: zipCode) { verifiable = false }
                 }
-                Section(footer: Text("Your username may appear on the leaderboard.")) {
-                    TextField("Username \(defaults.object(forKey: "Username") as? String ?? String())", text: $username)
-                        .font(Font.system(size: 15))
-                        .fontWeight(.semibold)
+                Section {
                     Button("Save") {
                         if addressLine2 == "" {
                             address = "\(addressLine1), \(city), \(state) \(zipCode)"
                         } else {
                             address = "\(addressLine1), \(addressLine2), \(city), \(state) \(zipCode)"
                         }
-                        defaults.set(username, forKey: "Username")
                         defaults.set(address, forKey: "Address")
                         defaults.set(fullName, forKey: "FullName")
+                        let slug = Auth.auth().currentUser?.email?.components(separatedBy: "@").first ?? ""
+                        if !slug.isEmpty {
+                            db.collection("leaders").document(slug).setData(["username": username], merge: true)
+                        }
                     }
                 }
                 Section {
@@ -673,6 +674,18 @@ struct ContentView: View {
             }
         }
         .background(Color(uiColor: .systemBackground))
+        .onAppear { loadUsername() }
+    }
+
+    func loadUsername() {
+        let slug = Auth.auth().currentUser?.email?.components(separatedBy: "@").first ?? ""
+        if !slug.isEmpty {
+            db.collection("leaders").document(slug).getDocument { doc, error in
+                if let doc = doc, doc.exists {
+                    username = doc.data()?["username"] as? String ?? ""
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -681,7 +694,7 @@ struct ContentView: View {
             Text("Leaderboard").font(.title).bold().padding()
             List {
                 ForEach($leaders.indices, id: \.self) { index in
-                    LeaderView(username: $leaders[index].username, eventsAttended: $leaders[index].eventsAttended)
+                    LeaderView(studentId: leaders[index].id, username: leaders[index].username, eventsAttended: $leaders[index].eventsAttended)
                 }
             }
         }
@@ -814,9 +827,8 @@ struct ContentView: View {
             let studentIdSlug = Auth.auth().currentUser?.email?.components(separatedBy: "@").first ?? ""
             let savedAddress = defaults.object(forKey: "Address") as? String ?? ""
             let savedFullName = defaults.object(forKey: "FullName") as? String ?? ""
-            let savedUsername = defaults.object(forKey: "Username") as? String ?? ""
             if !studentIdSlug.isEmpty {
-                attendEvent(eventId: result.string, studentId: studentIdSlug, address: savedAddress, fullName: savedFullName, username: savedUsername)
+                attendEvent(eventId: result.string, studentId: studentIdSlug, address: savedAddress, fullName: savedFullName)
             }
         case .failure(let error):
             withAnimation(.spring()) {

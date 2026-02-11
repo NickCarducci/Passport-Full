@@ -23,7 +23,6 @@ import {
   setDoc,
   query,
   where,
-  getDocs,
   updateDoc,
   addDoc,
   deleteDoc,
@@ -50,7 +49,6 @@ const loginInitial = {
   leadersError: "",
   newAccount: null,
   bumpedFrom: "this page",
-  username: "",
   //name: "",
   id: "",
   under13: false,
@@ -91,108 +89,6 @@ export default class App extends React.Component {
       this.setState({
         [name]: "+1" + value
       });
-    } else if (name === "username") {
-      this.setState({
-        [name]:
-          !value.includes(" ") &&
-          !value.includes("_") &&
-          value.match(/[a-z0-9]/g)
-            ? value
-            : ""
-      });
-      if (e.which !== 32) {
-        this.setState({ findingSimilarNames: true });
-        clearTimeout(this.typingUsername);
-        this.typingUsername = setTimeout(() => {
-          this.setState({ findingSimilarNames: false }, () => {
-            const individualTypes = [],
-              newIndTypes = individualTypes.map((x) => x.replace(/[ ,-]/g, "")),
-              pagesNamesTaken = [
-                "event",
-                "events",
-                "club",
-                "clubs",
-                "shop",
-                "shops",
-                "restaurant",
-                "restaurants",
-                "service",
-                "services",
-                "dept",
-                "department",
-                "departments",
-                "classes",
-                "class",
-                "oldclass",
-                "oldclasses",
-                "job",
-                "jobs",
-                "housing",
-                "oldhome",
-                "page",
-                "pages",
-                "venue",
-                "venues",
-                "forum",
-                "posts",
-                "post",
-                "oldelection",
-                "elections",
-                "election",
-                "case",
-                "cases",
-                "oldcase",
-                "oldcases",
-                "budget",
-                "budgets",
-                "oldbudget",
-                "oldbudgets",
-                "ordinance",
-                "ordinances",
-                "new",
-                "news",
-                "login",
-                "logins",
-                "doc",
-                "docs",
-                "private",
-                "privacy",
-                "legal",
-                "terms",
-                "law",
-                "laws",
-                "bill",
-                "bills"
-              ],
-              pagesNamesTaken1 = [...[], ...[]],
-              curses = ["bitch", "cunt", "pussy", "pussies", "fuck", "shit"],
-              hasCurse = curses.find((x) => value.toLowerCase().includes(x));
-
-            if (
-              hasCurse ||
-              pagesNamesTaken.includes(value.toLowerCase()) ||
-              pagesNamesTaken1.includes(value.toLowerCase())
-            )
-              return this.setState({ newUserPlease: true }, () =>
-                window.alert(
-                  "reserve word '" + value + "', please choose another"
-                )
-              );
-            this.setState({ newUserPlease: false }, () =>
-              getDocs(
-                query(
-                  collection(firestore, "users"),
-                  where("username", "==", this.state.username)
-                )
-              ).then((snapshot) =>
-                snapshot.docs.forEach((doc) =>
-                  this.setState({ newUserPlease: doc.exists() })
-                )
-              )
-            );
-          });
-        }, 1000);
-      }
     } /* else if (e.target.id === "parentEmail") {
       this.setState({
         parentEmail: e.target.value.toLowerCase()
@@ -204,7 +100,6 @@ export default class App extends React.Component {
     }*/
   };
   componentWillUnmount = () => {
-    clearTimeout(this.typingUsername);
     this.isMountCanceled = true;
   };
 
@@ -249,7 +144,6 @@ export default class App extends React.Component {
         eventId: attendingEventId,
         studentId: user.studentId,
         fullName: user.fullName || "",
-        username: user.username || user.studentId,
         address: user.address || ""
       })
     })
@@ -309,7 +203,6 @@ export default class App extends React.Component {
                 } else {
                   // Create new profile using studentId as Document ID
                   const newUser = {
-                    username: studentId,
                     studentId: studentId,
                     createdAt: new Date(),
                     admin: isBootstrapAdmin
@@ -509,7 +402,7 @@ export default class App extends React.Component {
                         className={`podium-item ${ranks[i]}`}
                       >
                         <div className="medal">{medals[i]}</div>
-                        <div className="podium-name">{leader.username}</div>
+                        <div className="podium-name">{leader.username || leader.id}</div>
                         <div className="podium-score">
                           {leader.eventsAttended}
                         </div>
@@ -528,7 +421,7 @@ export default class App extends React.Component {
                         <strong style={{ marginRight: "15px", opacity: 0.5 }}>
                           {i + 4}
                         </strong>{" "}
-                        {leader.username}
+                        {leader.username || leader.id}
                       </span>
                       <span style={{ fontWeight: "bold" }}>
                         {leader.eventsAttended} pts
@@ -638,7 +531,7 @@ export default class App extends React.Component {
                     </div>
                     <div
                       style={{
-                        marginBottom: "15px",
+                        marginBottom: "10px",
                         fontSize: "14px",
                         color: "var(--primary)",
                         fontWeight: "bold"
@@ -648,6 +541,50 @@ export default class App extends React.Component {
                       {this.state.leaders.find(
                         (l) => l.id === this.state.user?.studentId
                       )?.eventsAttended || 0}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        alignItems: "center",
+                        fontSize: "14px",
+                        marginBottom: "5px"
+                      }}
+                    >
+                      <strong>Username:</strong>
+                      <input
+                        value={
+                          this.state.profileUsername ??
+                          (this.state.leaders.find(
+                            (l) => l.id === this.state.user?.studentId
+                          )?.username || "")
+                        }
+                        onChange={(e) =>
+                          this.setState({ profileUsername: e.target.value })
+                        }
+                        placeholder="Display name"
+                        style={{ padding: "2px 6px", fontSize: "14px" }}
+                      />
+                      <button
+                        className="btn btn-primary"
+                        style={{ fontSize: "12px", padding: "2px 8px" }}
+                        onClick={() => {
+                          const id = this.state.user?.studentId;
+                          if (!id) return;
+                          const val =
+                            this.state.profileUsername ??
+                            (this.state.leaders.find(
+                              (l) => l.id === id
+                            )?.username || "");
+                          setDoc(
+                            doc(firestore, "leaders", id),
+                            { username: val },
+                            { merge: true }
+                          ).then(() => window.alert("Username saved"));
+                        }}
+                      >
+                        Save
+                      </button>
                     </div>
                   </div>
                   {this.state.userQR && (
@@ -661,40 +598,6 @@ export default class App extends React.Component {
                     />
                   )}
                 </div>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    updateDoc(
-                      doc(firestore, "users", this.state.user.studentId),
-                      {
-                        username: this.state.username
-                      }
-                    ).then(() => window.alert("Username updated!"));
-                  }}
-                  style={{ display: "flex", gap: "10px" }}
-                >
-                  <input
-                    id="username"
-                    value={this.state.username}
-                    onChange={this.handleChange}
-                    placeholder="Set Display Username"
-                  />
-                  <button className="btn btn-primary" type="submit">
-                    Update
-                  </button>
-                </form>
-                {!this.state.user?.admin && (
-                  <p
-                    style={{
-                      marginTop: "10px",
-                      fontSize: "12px",
-                      color: "grey"
-                    }}
-                  >
-                    Set a username so an admin can identify and authorize your
-                    account.
-                  </p>
-                )}
               </div>
 
               {/* Attend Event Section - Visible to everyone */}
@@ -780,7 +683,6 @@ export default class App extends React.Component {
                           {
                             admin: true,
                             studentId: id,
-                            username: id,
                             createdAt: new Date()
                           },
                           { merge: true }
