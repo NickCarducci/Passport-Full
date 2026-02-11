@@ -19,6 +19,40 @@ github.com/nickcarducci/Passport-Full combines all
 
 However, the last two need to **retain their own .git files + repositories**
 
+## CI/CD (GitHub Actions)
+
+Pushing to `main` triggers `.github/workflows/deploy.yml`, which rsyncs the backend + TV source to your server, runs `npm install` (which builds the TV dashboard via `postinstall`), and restarts PM2.
+
+### GitHub Secrets
+
+Set these in **Settings > Secrets and variables > Actions** on the root repo (Passport-Full):
+
+| Secret                  | Value                                                        |
+| :---------------------- | :----------------------------------------------------------- |
+| `SSH_PRIVATE_KEY`       | Private key whose public half is in the server's `~/.ssh/authorized_keys` |
+| `SERVER_HOST`           | Server IP (e.g. `178.156.240.36`)                            |
+| `FIREBASE_SERVICE_JSON` | Full contents of `passport-service.json`                     |
+
+### Adapting for another server
+
+The workflow is provider-agnostic — it only needs SSH + rsync. To deploy on a non-Hetzner server:
+
+1. Provision any Ubuntu VPS (DigitalOcean, Linode, AWS EC2, etc.)
+2. Run the **one-time server setup** below (Node.js, PM2, Caddy)
+3. Add your SSH key and server IP as GitHub Secrets
+4. Push to `main` — the workflow handles the rest
+
+### Mobile repos
+
+iOS and Android live in separate repos for their respective build systems:
+
+| Repo | Build System | Workflow |
+| :--- | :----------- | :------- |
+| `NickCarducci/Passport` | Xcode Cloud (App Store Connect) | Configured in App Store Connect, not via yml |
+| `NickCarducci/Passport-Android` | Play Store Console | `Android/.github/workflows/build.yml` — builds signed APK on push |
+
+## Server Provisioning (one-time)
+
 I suggest hetzner because you get a static IP - even though only MongoDB really needs that - firebase-admin seems like it doesn't. Neither does Azure SQL, ... cockroachDB SQL might...
 
 | Platform                   | Feature / Cost | Infrastructure Type |
