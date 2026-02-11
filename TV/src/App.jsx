@@ -566,7 +566,7 @@ export default class App extends React.Component {
                         (myLeader?.username || "");
                       setDoc(
                         doc(firestore, "leaders", id),
-                        { username: val },
+                        { username: val, eventsAttended: myLeader?.eventsAttended || 0 },
                         { merge: true }
                       ).then(() => window.alert("Username saved"));
                     }}

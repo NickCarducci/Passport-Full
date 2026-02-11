@@ -24,14 +24,20 @@ service cloud.firestore {
 
     match /leaders/{leaderId}{
       allow read: if true;
-      // Attendance is handled by the Node.js API (Admin SDK), so clients should never write here.
-      allow write: if false;
+      // Users can update their own username; attendance fields are written by the Admin SDK
+      allow update: if request.auth != null
+                    && request.auth.token.email.split("@")[0] == leaderId
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["username"]);
+      // Allow users to create their own leader doc if it doesn't exist yet
+      allow create: if request.auth != null
+                    && request.auth.token.email.split("@")[0] == leaderId
+                    && request.resource.data.keys().hasOnly(["username", "eventsAttended"])
+                    && request.resource.data.eventsAttended == 0;
     }
-    
-		// deprecated
-    match /numbers/{number}{
-      // Only allow users to see/manage their own phone mappings (if still in use)
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
+
+    match /userDatas/{uid}{
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
     }
   }
 }
