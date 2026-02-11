@@ -971,6 +971,10 @@ export default class App extends React.Component {
                   <button
                     className="dash-scanner-close"
                     onClick={() => {
+                      if (this._stream) {
+                        this._stream.getTracks().forEach((t) => t.stop());
+                        this._stream = null;
+                      }
                       this.setState({ scanning: false });
                       this._scanStarted = false;
                     }}
@@ -988,6 +992,7 @@ export default class App extends React.Component {
                             video: { facingMode: "environment" }
                           })
                           .then((stream) => {
+                            this._stream = stream;
                             el.srcObject = stream;
                             el.play();
                             const detector = new BarcodeDetector({
@@ -1008,6 +1013,7 @@ export default class App extends React.Component {
                                       stream
                                         .getTracks()
                                         .forEach((t) => t.stop());
+                                      this._stream = null;
                                       this.setState({ scanning: false });
                                       this._scanStarted = false;
                                       this.handleAttend(match[1]);
