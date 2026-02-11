@@ -55,8 +55,6 @@ const loginInitial = {
   textedCode: "",
   alertExistingUser: false,
   recaptchaResponse: "",
-  attendingEventId: "",
-  userQR: "",
   searchId: ""
 };
 const firestore = getFirestore(firebase);
@@ -132,16 +130,15 @@ export default class App extends React.Component {
       });
   };
 
-  handleAttend = (e) => {
-    e.preventDefault();
-    const { attendingEventId, user } = this.state;
-    if (!attendingEventId || !user) return;
+  handleAttend = (eventId) => {
+    const { user } = this.state;
+    if (!eventId || !user) return;
 
     fetch("/api/attend", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        eventId: attendingEventId,
+        eventId,
         studentId: user.studentId,
         fullName: user.fullName || "",
         address: user.address || ""
@@ -150,7 +147,7 @@ export default class App extends React.Component {
       .then((res) => res.json())
       .then((data) => {
         window.alert(data.message + (data.title ? ": " + data.title : ""));
-        this.setState({ attendingEventId: "" });
+        this.props.navigate("/");
       })
       .catch((err) => standardCatch(err, "Attendance Error"));
   };
@@ -274,14 +271,16 @@ export default class App extends React.Component {
           : this.state.bumpedFrom;
       this.setState({ bumpedFrom });
     }
-    if (this.state.user?.studentId !== prevState.user?.studentId) {
-      if (this.state.user?.studentId) {
-        QRCode.toDataURL(this.state.user.studentId, (err, url) => {
-          if (!err) this.setState({ userQR: url });
-        });
-      } else {
-        this.setState({ userQR: "" });
-      }
+    // Auto-attend when user lands on /event/:eventId?attend=true
+    const match = this.props.pathname.match(/^\/event\/(.+)$/);
+    const params = new URLSearchParams(this.props.location.search);
+    if (
+      match &&
+      params.get("attend") === "true" &&
+      this.state.user &&
+      (!prevState.user || this.props.pathname !== prevProps.pathname)
+    ) {
+      this.handleAttend(match[1]);
     }
   };
 
@@ -587,129 +586,101 @@ export default class App extends React.Component {
                       </button>
                     </div>
                   </div>
-                  {this.state.userQR && (
-                    <img
-                      src={this.state.userQR}
-                      alt="My QR"
-                      style={{
-                        width: "80px",
-                        border: "1px solid var(--border)"
-                      }}
-                    />
-                  )}
                 </div>
               </div>
 
-              {/* Attend Event Section - Visible to everyone */}
-              <div className="card">
-                <h3>Attend Event</h3>
-                <p
-                  style={{
-                    marginBottom: "15px",
-                    fontSize: "12px",
-                    color: "grey"
-                  }}
-                >
-                  Enter the Event ID provided at the venue to check in.
-                </p>
-                <form
-                  onSubmit={this.handleAttend}
-                  style={{ display: "flex", gap: "10px" }}
-                >
-                  <input
-                    id="attendingEventId"
-                    value={this.state.attendingEventId}
-                    onChange={(e) =>
-                      this.setState({ attendingEventId: e.target.value })
-                    }
-                    placeholder="Enter Event ID"
-                  />
-                  <button className="btn btn-primary" type="submit">
-                    Check In
-                  </button>
-                </form>
-              </div>
-
-              <div className="card">
-                <h3>User Management</h3>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                  }}
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    marginBottom: "15px"
-                  }}
-                >
-                  <input
-                    onChange={(e) => {
-                      const val = e.target.value.toLowerCase();
-                      this.setState({ searchId: val });
-                      clearTimeout(this.searchTimeout);
-                      this.searchTimeout = setTimeout(() => {
-                        onSnapshot(
-                          query(
-                            collection(firestore, "users"),
-                            where("studentId", "==", val)
-                          ),
-                          (querySnapshot) => {
-                            this.setState({
-                              users: querySnapshot.docs.map((document) => {
-                                return { id: document.id, ...document.data() };
-                              })
-                            });
-                          }
-                        );
-                      }, 1500);
-                    }}
-                    placeholder="Enter Student ID to Authorize"
-                    style={{
-                      height: "20px",
-                      border: "0px"
-                    }}
-                  />
-                </form>
-                {this.state.searchId && (
-                  <div
-                    style={{ display: "flex", gap: "10px", marginTop: "10px" }}
-                  >
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => {
-                        const id = this.state.searchId;
-                        setDoc(
-                          doc(firestore, "users", id),
-                          {
-                            admin: true,
-                            studentId: id,
-                            createdAt: new Date()
-                          },
-                          { merge: true }
-                        ).then(() => window.alert(id + " dubbed Admin."));
-                      }}
-                    >
-                      Dub Admin
-                    </button>
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => {
-                        const id = this.state.searchId;
-                        updateDoc(doc(firestore, "users", id), {
-                          admin: false
-                        }).then(() =>
-                          window.alert(id + " removed from Admins.")
-                        );
-                      }}
-                    >
-                      Revoke
-                    </button>
-                  </div>
-                )}
-              </div>
+              {this.props.pathname.match(/^\/event\/(.+)$/) &&
+                new URLSearchParams(this.props.location.search).get("attend") === "true" && (
+                <div className="card">
+                  <h3>Checking In...</h3>
+                  <p style={{ fontSize: "14px", color: "grey" }}>
+                    {this.state.user
+                      ? "Processing attendance..."
+                      : "Please sign in to check in to this event."}
+                  </p>
+                </div>
+              )}
 
               {this.state.user?.admin && (
                 <>
+                  <div className="card">
+                    <h3>User Management</h3>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                      }}
+                      style={{
+                        display: "flex",
+                        gap: "10px",
+                        marginBottom: "15px"
+                      }}
+                    >
+                      <input
+                        onChange={(e) => {
+                          const val = e.target.value.toLowerCase();
+                          this.setState({ searchId: val });
+                          clearTimeout(this.searchTimeout);
+                          this.searchTimeout = setTimeout(() => {
+                            onSnapshot(
+                              query(
+                                collection(firestore, "users"),
+                                where("studentId", "==", val)
+                              ),
+                              (querySnapshot) => {
+                                this.setState({
+                                  users: querySnapshot.docs.map((document) => {
+                                    return { id: document.id, ...document.data() };
+                                  })
+                                });
+                              }
+                            );
+                          }, 1500);
+                        }}
+                        placeholder="Enter Student ID to Authorize"
+                        style={{
+                          height: "20px",
+                          border: "0px"
+                        }}
+                      />
+                    </form>
+                    {this.state.searchId && (
+                      <div
+                        style={{ display: "flex", gap: "10px", marginTop: "10px" }}
+                      >
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => {
+                            const id = this.state.searchId;
+                            setDoc(
+                              doc(firestore, "users", id),
+                              {
+                                admin: true,
+                                studentId: id,
+                                createdAt: new Date()
+                              },
+                              { merge: true }
+                            ).then(() => window.alert(id + " dubbed Admin."));
+                          }}
+                        >
+                          Dub Admin
+                        </button>
+                        <button
+                          className="btn btn-danger"
+                          onClick={() => {
+                            const id = this.state.searchId;
+                            updateDoc(doc(firestore, "users", id), {
+                              admin: false
+                            }).then(() =>
+                              window.alert(id + " removed from Admins.")
+                            );
+                          }}
+                        >
+                          Revoke
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="card">
                     <h3>Create New Event</h3>
                     <form
@@ -920,7 +891,7 @@ export default class App extends React.Component {
                                                           width: "300px"
                                                         }}
                                                         src={QRCode.toDataURL(
-                                                          x.id
+                                                          window.location.origin + "/event/" + x.id + "?attend=true"
                                                         )}
                                                       />
                                                     </View>
