@@ -334,6 +334,7 @@ export default class App extends React.Component {
               <div className="dash-header-left">
                 <img
                   src="/ScholarWeek_Logo.png"
+                  //src="/MU-logo.png"
                   alt="Logo"
                   className="dash-logo"
                 />
@@ -390,7 +391,9 @@ export default class App extends React.Component {
                         className={`podium-item ${ranks[i]}`}
                       >
                         <div className="medal">{medals[i]}</div>
-                        <div className="podium-name">{leader.username || leader.id}</div>
+                        <div className="podium-name">
+                          {leader.username || leader.id}
+                        </div>
                         <div className="podium-score">
                           {leader.eventsAttended}
                         </div>
@@ -520,8 +523,7 @@ export default class App extends React.Component {
                   <input
                     className="dash-username-input"
                     value={
-                      this.state.profileUsername ??
-                      (myLeader?.username || "")
+                      this.state.profileUsername ?? (myLeader?.username || "")
                     }
                     onChange={(e) =>
                       this.setState({ profileUsername: e.target.value })
@@ -550,13 +552,15 @@ export default class App extends React.Component {
 
               {/* Check-In Toast */}
               {this.props.pathname.match(/^\/event\/(.+)$/) &&
-                new URLSearchParams(this.props.location.search).get("attend") === "true" && (
-                <div className="dash-checkin-toast">
-                  {this.state.user
-                    ? "Processing attendance..."
-                    : "Please sign in to check in."}
-                </div>
-              )}
+                new URLSearchParams(this.props.location.search).get(
+                  "attend"
+                ) === "true" && (
+                  <div className="dash-checkin-toast">
+                    {this.state.user
+                      ? "Processing attendance..."
+                      : "Please sign in to check in."}
+                  </div>
+                )}
 
               {/* Admin Tabs Section */}
               {this.state.user?.admin && (
@@ -569,15 +573,13 @@ export default class App extends React.Component {
                           "dash-tab" +
                           (this.state.activeAdminTab === tab ? " active" : "")
                         }
-                        onClick={() =>
-                          this.setState({ activeAdminTab: tab })
-                        }
+                        onClick={() => this.setState({ activeAdminTab: tab })}
                       >
                         {tab === "users"
                           ? "Users"
                           : tab === "new"
-                          ? "New Event"
-                          : "Events"}
+                            ? "New Event"
+                            : "Events"}
                       </button>
                     ))}
                   </div>
@@ -679,8 +681,7 @@ export default class App extends React.Component {
                               addDoc(collection(firestore, "events"), {
                                 title: this.state.newTitle,
                                 date: this.state.newDate,
-                                descriptionLink:
-                                  this.state.newDescriptionLink,
+                                descriptionLink: this.state.newDescriptionLink,
                                 location: this.state.newLocation,
                                 department: this.state.newDepartment,
                                 school: this.state.newSchool,
@@ -803,8 +804,7 @@ export default class App extends React.Component {
                             ) : (
                               this.state.events
                                 .sort(
-                                  (a, b) =>
-                                    new Date(a.date) - new Date(b.date)
+                                  (a, b) => new Date(a.date) - new Date(b.date)
                                 )
                                 .map((x) => (
                                   <tr key={x.id}>
@@ -815,8 +815,7 @@ export default class App extends React.Component {
                                         textAlign: "center"
                                       }}
                                       onClick={() => {
-                                        var answer =
-                                          window.confirm("delete?");
+                                        var answer = window.confirm("delete?");
                                         answer &&
                                           deleteDoc(
                                             doc(firestore, "events", x.id)
@@ -852,23 +851,20 @@ export default class App extends React.Component {
                                                 family: "Roboto",
                                                 src: "https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-light-webfont.ttf"
                                               });
-                                              const styles =
-                                                StyleSheet.create({
-                                                  page: {
-                                                    margin: 30,
-                                                    width: "100%",
-                                                    height: "100%"
-                                                  },
-                                                  section: {
-                                                    color: "white",
-                                                    textAlign: "center",
-                                                    fontFamily: "Roboto"
-                                                  }
-                                                });
+                                              const styles = StyleSheet.create({
+                                                page: {
+                                                  margin: 30,
+                                                  width: "100%",
+                                                  height: "100%"
+                                                },
+                                                section: {
+                                                  color: "white",
+                                                  textAlign: "center",
+                                                  fontFamily: "Roboto"
+                                                }
+                                              });
                                               const pdfRoot = createRoot(
-                                                document.getElementById(
-                                                  "root"
-                                                )
+                                                document.getElementById("root")
                                               );
                                               pdfRoot.render(
                                                 <PDFViewer>
@@ -882,9 +878,7 @@ export default class App extends React.Component {
                                                         {x.descriptionLink}
                                                       </Text>
                                                       <View
-                                                        style={
-                                                          styles.section
-                                                        }
+                                                        style={styles.section}
                                                       >
                                                         <Image
                                                           style={{
@@ -902,9 +896,7 @@ export default class App extends React.Component {
                                                     </Page>
                                                   </Document>
                                                 </PDFViewer>,
-                                                document.getElementById(
-                                                  "root"
-                                                )
+                                                document.getElementById("root")
                                               );
                                             }}
                                           >
@@ -932,9 +924,7 @@ export default class App extends React.Component {
               {/* Footer */}
               <div className="dash-footer">
                 <div className="dash-footer-links">
-                  <div
-                    onClick={() => this.props.navigate("/leaderboard")}
-                  >
+                  <div onClick={() => this.props.navigate("/leaderboard")}>
                     Leaderboard
                   </div>
                   <CSVLink
@@ -986,9 +976,7 @@ export default class App extends React.Component {
                             });
                             const scan = () => {
                               if (!this.state.scanning) {
-                                stream
-                                  .getTracks()
-                                  .forEach((t) => t.stop());
+                                stream.getTracks().forEach((t) => t.stop());
                                 return;
                               }
                               detector
@@ -996,8 +984,7 @@ export default class App extends React.Component {
                                 .then((codes) => {
                                   if (codes.length > 0) {
                                     const url = codes[0].rawValue;
-                                    const match =
-                                      url.match(/\/event\/([^?]+)/);
+                                    const match = url.match(/\/event\/([^?]+)/);
                                     if (match) {
                                       stream
                                         .getTracks()
@@ -1040,22 +1027,24 @@ export default class App extends React.Component {
           )}
 
           {/* Scan FAB */}
-          {this.state.auth && !this.state.scanning && this.props.pathname !== "/leaderboard" && (
-            <button
-              className="dash-scan-fab"
-              onClick={() => {
-                if (!("BarcodeDetector" in window)) {
-                  window.alert(
-                    "Your browser doesn't support QR scanning. Use your phone camera to scan the QR code instead."
-                  );
-                  return;
-                }
-                this.setState({ scanning: true });
-              }}
-            >
-              Scan QR
-            </button>
-          )}
+          {this.state.auth &&
+            !this.state.scanning &&
+            this.props.pathname !== "/leaderboard" && (
+              <button
+                className="dash-scan-fab"
+                onClick={() => {
+                  if (!("BarcodeDetector" in window)) {
+                    window.alert(
+                      "Your browser doesn't support QR scanning. Use your phone camera to scan the QR code instead."
+                    );
+                    return;
+                  }
+                  this.setState({ scanning: true });
+                }}
+              >
+                Scan QR
+              </button>
+            )}
         </div>
       </div>
     );
