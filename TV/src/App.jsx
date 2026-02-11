@@ -131,6 +131,19 @@ export default class App extends React.Component {
       });
   };
 
+  switchAccount = () => {
+    const provider = new OAuthProvider("microsoft.com");
+    provider.setCustomParameters({ tenant: "organizations", prompt: "select_account" });
+    signInWithPopup(getAuth(), provider)
+      .then((result) => {
+        console.log("Switched to:", result.user.email);
+        this.setState({ auth: result.user });
+      })
+      .catch((error) => {
+        console.error("Switch Account Error:", error);
+      });
+  };
+
   handleAttend = (eventId) => {
     const { user } = this.state;
     if (!eventId || !user) return;
@@ -342,6 +355,12 @@ export default class App extends React.Component {
               </div>
               <div className="dash-header-right">
                 <div className="dash-avatar">{emailInitial}</div>
+                <button
+                  className="dash-logout-btn"
+                  onClick={() => this.switchAccount()}
+                >
+                  Switch
+                </button>
                 <button
                   className="dash-logout-btn"
                   onClick={() => {
