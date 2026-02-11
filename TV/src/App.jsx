@@ -601,6 +601,86 @@ export default class App extends React.Component {
                 </div>
               )}
 
+              <div className="card">
+                <h3>Scan QR Code</h3>
+                {this.state.scanning ? (
+                  <div>
+                    <video
+                      ref={(el) => {
+                        if (el && !el.srcObject && !this._scanStarted) {
+                          this._scanStarted = true;
+                          navigator.mediaDevices
+                            .getUserMedia({ video: { facingMode: "environment" } })
+                            .then((stream) => {
+                              el.srcObject = stream;
+                              el.play();
+                              const detector = new BarcodeDetector({ formats: ["qr_code"] });
+                              const scan = () => {
+                                if (!this.state.scanning) {
+                                  stream.getTracks().forEach((t) => t.stop());
+                                  return;
+                                }
+                                detector
+                                  .detect(el)
+                                  .then((codes) => {
+                                    if (codes.length > 0) {
+                                      const url = codes[0].rawValue;
+                                      const match = url.match(/\/event\/([^?]+)/);
+                                      if (match) {
+                                        stream.getTracks().forEach((t) => t.stop());
+                                        this.setState({ scanning: false });
+                                        this._scanStarted = false;
+                                        this.handleAttend(match[1]);
+                                      }
+                                    }
+                                    if (this.state.scanning) requestAnimationFrame(scan);
+                                  })
+                                  .catch(() => {
+                                    if (this.state.scanning) requestAnimationFrame(scan);
+                                  });
+                              };
+                              requestAnimationFrame(scan);
+                            })
+                            .catch((err) => {
+                              window.alert("Camera access denied: " + err.message);
+                              this.setState({ scanning: false });
+                              this._scanStarted = false;
+                            });
+                        }
+                      }}
+                      style={{ width: "100%", borderRadius: "8px" }}
+                      playsInline
+                      muted
+                    />
+                    <button
+                      className="btn btn-danger"
+                      style={{ marginTop: "10px", fontSize: "12px" }}
+                      onClick={() => {
+                        this.setState({ scanning: false });
+                        this._scanStarted = false;
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      if (!("BarcodeDetector" in window)) {
+                        window.alert(
+                          "Your browser doesn't support QR scanning. Use your phone camera to scan the QR code instead."
+                        );
+                        return;
+                      }
+                      this.setState({ scanning: true });
+                    }}
+                  >
+                    Open Camera
+                  </button>
+                )}
+              </div>
+
               {this.state.user?.admin && (
                 <>
                   <div className="card">
