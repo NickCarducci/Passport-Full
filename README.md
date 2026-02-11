@@ -27,29 +27,88 @@ Pushing to `main` triggers `.github/workflows/deploy.yml`, which rsyncs the back
 
 Set these in **Settings > Secrets and variables > Actions** on the root repo (Passport-Full):
 
-| Secret                  | Value                                                        |
-| :---------------------- | :----------------------------------------------------------- |
+| Secret                  | Value                                                                     |
+| :---------------------- | :------------------------------------------------------------------------ |
 | `SSH_PRIVATE_KEY`       | Private key whose public half is in the server's `~/.ssh/authorized_keys` |
-| `SERVER_HOST`           | Server IP (e.g. `178.156.240.36`)                            |
-| `FIREBASE_SERVICE_JSON` | Full contents of `passport-service.json`                     |
+| `SERVER_HOST`           | Server IP (e.g. `178.156.240.36`, `pass.contact`)                         |
+| `FIREBASE_SERVICE_JSON` | Full contents of `passport-service.json`                                  |
 
 ### Adapting for another server
 
 The workflow is provider-agnostic — it only needs SSH + rsync. To deploy on a non-Hetzner server:
 
-1. Provision any Ubuntu VPS (DigitalOcean, Linode, AWS EC2, etc.)
-2. Run the **one-time server setup** below (Node.js, PM2, Caddy)
-3. Add your SSH key and server IP as GitHub Secrets
-4. Push to `main` — the workflow handles the rest
+1. Provision any Ubuntu VPS (DigitalOcean, Linode, AWS EC2, etc.) running Ubuntu 24.04
+2. SSH into the server and run the one-time setup:
+
+```bash
+# Node.js
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+npm install -g npm@latest
+
+# PM2
+sudo npm install -g pm2
+
+# SSH permissions
+chmod 750 /root
+chmod 700 /root/.ssh
+chmod 600 /root/.ssh/authorized_keys
+
+# First deploy: create the microservice directory and start PM2
+mkdir -p ~/microservice
+# (push to main or run the workflow manually to rsync code)
+cd ~/microservice
+npm install
+pm2 start index.js --name "microservice-process"
+pm2 save
+
+# Caddy (reverse proxy + auto HTTPS)
+apt update && apt install caddy -y
+sudo mkdir -p /var/www/webapp
+sudo chown -R root:caddy /var/www/webapp
+sudo chmod -R 755 /var/www/webapp
+
+# Firewall
+ufw allow 22
+ufw allow 80
+ufw allow 443
+ufw enable
+```
+
+3. Write your Caddyfile (`nano /etc/caddy/Caddyfile`):
+
+```
+yourdomain.com {
+    handle /api/* {
+        reverse_proxy localhost:8080
+    }
+    handle /webhook/* {
+        reverse_proxy localhost:8080
+    }
+    handle /health {
+        reverse_proxy localhost:8080
+    }
+    handle {
+        root * /var/www/webapp
+        file_server
+        try_files {path} /index.html
+    }
+}
+```
+
+Then `sudo systemctl reload caddy`. Point your domain's A record to the server IP (no proxy).
+
+4. Add your SSH key and server IP/domain as GitHub Secrets
+5. Push to `main` — the workflow handles the rest
 
 ### Mobile repos
 
 iOS and Android live in separate repos for their respective build systems:
 
-| Repo | Build System | Workflow |
-| :--- | :----------- | :------- |
-| `NickCarducci/Passport` | Xcode Cloud (App Store Connect) | Configured in App Store Connect, not via yml |
-| `NickCarducci/Passport-Android` | Play Store Console | `Android/.github/workflows/build.yml` — builds signed APK on push |
+| Repo                            | Build System                    | Workflow                                                          |
+| :------------------------------ | :------------------------------ | :---------------------------------------------------------------- |
+| `NickCarducci/Passport`         | Xcode Cloud (App Store Connect) | Configured in App Store Connect, not via yml                      |
+| `NickCarducci/Passport-Android` | Play Store Console              | `Android/.github/workflows/build.yml` — builds signed APK on push |
 
 ## Server Provisioning (one-time)
 
