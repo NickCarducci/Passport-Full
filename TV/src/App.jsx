@@ -177,6 +177,16 @@ export default class App extends React.Component {
               const studentId = auth.email?.split("@")[0] || "";
               const isBootstrapAdmin = auth.email === "wqu@monmouth.edu";
 
+              // Direct listener for the user's own leader doc
+              // (the orderBy query excludes docs missing eventsAttended)
+              onSnapshot(doc(firestore, "leaders", studentId), (dc) => {
+                if (dc.exists()) {
+                  this.setState({ myLeaderDoc: { id: dc.id, ...dc.data() } });
+                } else {
+                  this.setState({ myLeaderDoc: null });
+                }
+              });
+
               onSnapshot(doc(firestore, "users", studentId), (dc) => {
                 if (dc.exists()) {
                   const userData = dc.data();
@@ -330,15 +340,13 @@ export default class App extends React.Component {
     const columnCount = Math.round(this.props.width / 120);
     //console.log(this.state.users);
     const emailInitial = (this.state.auth?.email || "?")[0].toUpperCase();
-    const myLeader = this.state.leaders.find(
+    // Use the direct leader doc listener (not dependent on orderBy query)
+    const myLeader = this.state.myLeaderDoc;
+    const eventsAttended = myLeader?.eventsAttended || 0;
+    const rank = this.state.leaders.findIndex(
       (l) => l.id === this.state.user?.studentId
     );
-    const eventsAttended = myLeader?.eventsAttended || 0;
-    const rank = myLeader
-      ? this.state.leaders.findIndex(
-          (l) => l.id === this.state.user?.studentId
-        ) + 1
-      : "—";
+    const rankDisplay = rank >= 0 ? rank + 1 : "—";
     return (
       <div className="admin-root">
         {this.props.pathname !== "/leaderboard" ? (
@@ -540,7 +548,7 @@ export default class App extends React.Component {
                     <div className="dash-stat-label">Events</div>
                   </div>
                   <div className="dash-stat">
-                    <div className="dash-stat-value">{rank}</div>
+                    <div className="dash-stat-value">{rankDisplay}</div>
                     <div className="dash-stat-label">Rank</div>
                   </div>
                 </div>
@@ -564,11 +572,13 @@ export default class App extends React.Component {
                       const val =
                         this.state.profileUsername ??
                         (myLeader?.username || "");
-                      setDoc(
-                        doc(firestore, "leaders", id),
-                        { username: val, eventsAttended: myLeader?.eventsAttended || 0 },
-                        { merge: true }
-                      ).then(() => window.alert("Username saved"));
+                      const ref = doc(firestore, "leaders", id);
+                      const save = myLeader
+                        ? updateDoc(ref, { username: val })
+                        : setDoc(ref, { username: val, eventsAttended: 0 });
+                      save
+                        .then(() => window.alert("Username saved"))
+                        .catch((err) => window.alert("Save failed: " + err.message));
                     }}
                   >
                     &#10003;
