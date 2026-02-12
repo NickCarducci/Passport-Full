@@ -286,19 +286,69 @@ Now, (3) turn on proxy.
 - **Microsoft Authentication**: Secure sign-in using Monmouth University credentials via Firebase Auth.
 - **Focal Navigation**: A gesture-driven UI (iOS) that centers on the Event List with underlays for Profile, Leaderboard, and Camera.
 - **QR Attendance**: Students scan event-specific QR codes to log attendance instantly.
-- **Identity Management**: Student IDs are automatically derived from email slugs (e.g., `s1234567`) to ensure data integrity and prevent spoofing.
+- **Identity-Verified One-Time Codes**: A two-step attendance protocol that prevents identity spoofing and code reuse (see below).
+
+## Attendance Security: One-Time Code Protocol
+
+Most event attendance apps trust the client to report who is attending — a student could modify the request to check in a friend, or share a magic link that marks attendance for whoever opens it. Passport eliminates both vectors with a two-step, identity-bound attendance flow:
+
+### How it works
+
+```
+Student scans QR ──► App extracts eventId
+                         │
+                         ▼
+                   POST /api/code
+                   Authorization: Bearer <Firebase ID token>
+                   Body: { eventId }
+                         │
+                         ▼
+              Server verifies token, extracts studentId
+              from the verified email (not the request body).
+              Checks: event exists? already attended? code exists?
+                         │
+                         ▼
+              Generates one-time code, stores in Firestore as
+              attendanceCodes/{studentId}_{eventId} ──► { code, studentId, eventId }
+              Returns { code } to client
+                         │
+                         ▼
+                   POST /api/attend
+                   Authorization: Bearer <Firebase ID token>
+                   Body: { eventId, code }
+                         │
+                         ▼
+              Server re-verifies token, confirms code matches
+              the stored code for this student+event.
+              Records attendance, deletes code.
+```
+
+### What this prevents
+
+| Attack | Why it fails |
+|:-------|:-------------|
+| **Spoofing a friend's ID** | `studentId` comes from the server-verified Firebase ID token, not the request body. You can only attend as yourself. |
+| **Reusing a code** | The code is deleted after successful attendance. The `/api/code` endpoint won't generate a new one once the student is in the attendees list. |
+| **Sharing a code** | The code is keyed to `{studentId}_{eventId}`. Even if shared, the server checks that the authenticated user's studentId matches the code's owner. |
+| **Attending without a code** | `/api/attend` rejects requests where the code doesn't match or doesn't exist. |
+| **Generating codes while logged out** | `/api/code` requires a valid Firebase ID token. No token, no code. |
+
+### What this does NOT prevent
+
+A student physically at the event could video-call the QR code to a friend who scans it on their own authenticated device. This is inherent to static QR codes — the image is the same for everyone. Mitigations like rotating QR codes (live display only, not printable) or geofencing exist but add operational complexity. For Passport's use case, the auth-bound one-time code strikes the right balance: it stops all technical exploits while keeping the UX frictionless.
 
 ## Technical Overview
 
 ### Authentication & Security
 
-The system uses **Sign In with Microsoft** integrated with Firebase. The backend (at the root) utilizes `firebase-admin` to ensure that attendance records are checked and updated privately. Access is restricted to `@monmouth.edu` accounts.
+The system uses **Sign In with Microsoft** integrated with Firebase. The backend verifies Firebase ID tokens on every API call using `firebase-admin`, ensuring that the server — not the client — determines the student's identity. Access is restricted to `@monmouth.edu` accounts.
 
 ### Data Flow
 
-1. **Mobile Apps**: Capture QR data and send a POST request to the Node.js API with the student's identity and event ID.
-2. **API**: Validates the event existence and student eligibility, then updates the `leaders` and `events` collections in Firestore.
-3. **TV/Web**: The ReactJS frontend (served by the root API) listens to real-time Firestore snapshots to display a live leaderboard.
+1. **Mobile Apps (iOS/Android)**: Scan QR, extract eventId, call `/api/code` with Firebase ID token to get a one-time code, then call `/api/attend` with the code. All natively — no browser involved.
+2. **Web App (TV/)**: Same two-step flow via the in-browser QR scanner, or auto-attend when visiting `/event/{eventId}?attend={code}`.
+3. **API**: Verifies identity from the auth token, validates the one-time code, then updates the `events` and `leaders` collections in Firestore.
+4. **TV/Web Leaderboard**: Listens to real-time Firestore snapshots to display a live leaderboard on campus displays.
 
 ### Infrastructure
 
