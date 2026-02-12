@@ -894,91 +894,75 @@ export default class App extends React.Component {
                                     >
                                       &times;
                                     </td>
-                                    <td
-                                      onClick={() => {
-                                        window.alert(x.date);
-                                        this.setState({
-                                          selectedEvent:
-                                            this.state.selectedEvent === x.id
-                                              ? null
-                                              : x.id
-                                        });
-                                      }}
-                                    >
-                                      {x.title}
-                                    </td>
+                                    <td>{x.title}</td>
                                     <td>{x.location}</td>
                                     <td>{x.department}</td>
                                     <td>{x.school}</td>
-                                    <td>{x.descriptionLink}</td>
-                                    {this.state.selectedEvent === x.id &&
-                                      this.state.user.admin && (
-                                        <td>
-                                          <form
-                                            onSubmit={(e) => {
-                                              e.preventDefault();
-                                              Font.register({
-                                                family: "Roboto",
-                                                src: "https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-light-webfont.ttf"
-                                              });
-                                              const styles = StyleSheet.create({
-                                                page: {
-                                                  margin: 30,
-                                                  width: "100%",
-                                                  height: "100%"
-                                                },
-                                                section: {
-                                                  color: "white",
-                                                  textAlign: "center",
-                                                  fontFamily: "Roboto"
-                                                }
-                                              });
-                                              const pdfRoot = createRoot(
-                                                document.getElementById("root")
-                                              );
-                                              pdfRoot.render(
-                                                <PDFViewer>
-                                                  <Document>
-                                                    <Page
-                                                      size="A4"
-                                                      style={styles.page}
-                                                    >
-                                                      <Text>
-                                                        {x.title}:{" "}
-                                                        {x.descriptionLink}
-                                                      </Text>
-                                                      <View
-                                                        style={styles.section}
-                                                      >
-                                                        <Image
-                                                          style={{
-                                                            width: "300px"
-                                                          }}
-                                                          src={QRCode.toDataURL(
-                                                            window.location
-                                                              .origin +
-                                                              "/event/" +
-                                                              x.id
-                                                          )}
-                                                        />
-                                                      </View>
-                                                    </Page>
-                                                  </Document>
-                                                </PDFViewer>,
-                                                document.getElementById("root")
-                                              );
-                                            }}
-                                          >
-                                            <button
-                                              className="btn btn-primary"
-                                              style={{ fontSize: "10px" }}
-                                              type="submit"
-                                            >
-                                              PDF
-                                            </button>
-                                          </form>
-                                        </td>
-                                      )}
+                                    <td>
+                                      <form
+                                        onSubmit={(e) => {
+                                          e.preventDefault();
+                                          Font.register({
+                                            family: "Roboto",
+                                            src: "https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-light-webfont.ttf"
+                                          });
+                                          const styles = StyleSheet.create({
+                                            page: {
+                                              margin: 30,
+                                              width: "100%",
+                                              height: "100%"
+                                            },
+                                            section: {
+                                              color: "white",
+                                              textAlign: "center",
+                                              fontFamily: "Roboto"
+                                            }
+                                          });
+                                          const pdfRoot = createRoot(
+                                            document.getElementById("root")
+                                          );
+                                          pdfRoot.render(
+                                            <PDFViewer>
+                                              <Document>
+                                                <Page
+                                                  size="A4"
+                                                  style={styles.page}
+                                                >
+                                                  <Text>
+                                                    {x.title}:{" "}
+                                                    {x.descriptionLink}
+                                                  </Text>
+                                                  <View
+                                                    style={styles.section}
+                                                  >
+                                                    <Image
+                                                      style={{
+                                                        width: "300px"
+                                                      }}
+                                                      src={QRCode.toDataURL(
+                                                        window.location
+                                                          .origin +
+                                                          "/event/" +
+                                                          x.id
+                                                      )}
+                                                    />
+                                                  </View>
+                                                </Page>
+                                              </Document>
+                                            </PDFViewer>,
+                                            document.getElementById("root")
+                                          );
+                                        }}
+                                      >
+                                        <button
+                                          className="btn btn-primary"
+                                          style={{ fontSize: "10px" }}
+                                          type="submit"
+                                        >
+                                          PDF
+                                        </button>
+                                      </form>
+                                    </td>
                                   </tr>
                                 ))
                             )}
