@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { CSVLink } from "react-csv";
 import QRCode from "qrcode";
+import jsQR from "jsqr";
 import {
   Font,
   StyleSheet,
@@ -1069,39 +1070,76 @@ export default class App extends React.Component {
                             this._stream = stream;
                             el.srcObject = stream;
                             el.play();
-                            const detector = new BarcodeDetector({
-                              formats: ["qr_code"]
-                            });
-                            const scan = () => {
-                              if (!this.state.scanning) {
+
+                            const onDetected = (url) => {
+                              const match = url.match(/\/event\/([^?]+)/);
+                              if (match) {
                                 stream.getTracks().forEach((t) => t.stop());
-                                return;
+                                this._stream = null;
+                                this.setState({ scanning: false });
+                                this._scanStarted = false;
+                                this.handleAttend(match[1]);
                               }
-                              detector
-                                .detect(el)
-                                .then((codes) => {
-                                  if (codes.length > 0) {
-                                    const url = codes[0].rawValue;
-                                    const match = url.match(/\/event\/([^?]+)/);
-                                    if (match) {
-                                      stream
-                                        .getTracks()
-                                        .forEach((t) => t.stop());
-                                      this._stream = null;
-                                      this.setState({ scanning: false });
-                                      this._scanStarted = false;
-                                      this.handleAttend(match[1]);
-                                    }
-                                  }
-                                  if (this.state.scanning)
-                                    requestAnimationFrame(scan);
-                                })
-                                .catch(() => {
-                                  if (this.state.scanning)
-                                    requestAnimationFrame(scan);
-                                });
                             };
-                            requestAnimationFrame(scan);
+
+                            if ("BarcodeDetector" in window) {
+                              const detector = new BarcodeDetector({
+                                formats: ["qr_code"]
+                              });
+                              const scan = () => {
+                                if (!this.state.scanning) {
+                                  stream
+                                    .getTracks()
+                                    .forEach((t) => t.stop());
+                                  return;
+                                }
+                                detector
+                                  .detect(el)
+                                  .then((codes) => {
+                                    if (codes.length > 0)
+                                      onDetected(codes[0].rawValue);
+                                    if (this.state.scanning)
+                                      requestAnimationFrame(scan);
+                                  })
+                                  .catch(() => {
+                                    if (this.state.scanning)
+                                      requestAnimationFrame(scan);
+                                  });
+                              };
+                              requestAnimationFrame(scan);
+                            } else {
+                              // jsQR fallback for browsers without BarcodeDetector
+                              const canvas = document.createElement("canvas");
+                              const ctx = canvas.getContext("2d");
+                              const scan = () => {
+                                if (!this.state.scanning) {
+                                  stream
+                                    .getTracks()
+                                    .forEach((t) => t.stop());
+                                  return;
+                                }
+                                if (el.videoWidth && el.videoHeight) {
+                                  canvas.width = el.videoWidth;
+                                  canvas.height = el.videoHeight;
+                                  ctx.drawImage(el, 0, 0);
+                                  const imageData = ctx.getImageData(
+                                    0,
+                                    0,
+                                    canvas.width,
+                                    canvas.height
+                                  );
+                                  const code = jsQR(
+                                    imageData.data,
+                                    imageData.width,
+                                    imageData.height
+                                  );
+                                  if (code) onDetected(code.data);
+                                }
+                                if (this.state.scanning)
+                                  requestAnimationFrame(scan);
+                              };
+                              requestAnimationFrame(scan);
+                            }
                           })
                           .catch((err) => {
                             window.alert(
@@ -1131,15 +1169,7 @@ export default class App extends React.Component {
             this.props.pathname !== "/leaderboard" && (
               <button
                 className="dash-scan-fab"
-                onClick={() => {
-                  if (!("BarcodeDetector" in window)) {
-                    window.alert(
-                      "Your browser doesn't support QR scanning. Use your phone camera to scan the QR code instead."
-                    );
-                    return;
-                  }
-                  this.setState({ scanning: true });
-                }}
+                onClick={() => this.setState({ scanning: true })}
               >
                 Scan QR
               </button>
