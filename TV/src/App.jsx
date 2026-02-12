@@ -144,26 +144,61 @@ export default class App extends React.Component {
       });
   };
 
-  handleAttend = (eventId) => {
+  handleAttend = async (eventId, existingCode) => {
     const { user } = this.state;
     if (!eventId || !user) return;
 
-    fetch("/api/attend", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        eventId,
-        studentId: user.studentId,
-        fullName: user.fullName || "",
-        address: user.address || ""
-      })
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        window.alert(data.message + (data.title ? ": " + data.title : ""));
-        this.props.navigate("/");
-      })
-      .catch((err) => standardCatch(err, "Attendance Error"));
+    const auth = getAuth();
+    if (!auth.currentUser) {
+      window.alert("Please sign in first.");
+      return;
+    }
+    const idToken = await auth.currentUser.getIdToken();
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + idToken
+    };
+
+    try {
+      let code = existingCode;
+
+      if (!code) {
+        // Step 1: Generate one-time code
+        const codeRes = await fetch("/api/code", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ eventId })
+        }).then((r) => r.json());
+
+        if (codeRes.message === "already attended.") {
+          window.alert("already attended." + (codeRes.title ? " " + codeRes.title : ""));
+          this.props.navigate("/");
+          return;
+        }
+        if (!codeRes.code) {
+          window.alert(codeRes.message || "Could not generate attendance code");
+          return;
+        }
+        code = codeRes.code;
+      }
+
+      // Step 2: Attend with code
+      const attendRes = await fetch("/api/attend", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          eventId,
+          code,
+          fullName: user.fullName || "",
+          address: user.address || ""
+        })
+      }).then((r) => r.json());
+
+      window.alert(attendRes.message + (attendRes.title ? ": " + attendRes.title : ""));
+      this.props.navigate("/");
+    } catch (err) {
+      standardCatch(err, "Attendance Error");
+    }
   };
 
   componentDidMount = () => {
@@ -295,16 +330,17 @@ export default class App extends React.Component {
           : this.state.bumpedFrom;
       this.setState({ bumpedFrom });
     }
-    // Auto-attend when user lands on /event/:eventId?attend=true
+    // Auto-attend when user lands on /event/:eventId?attend={code}
     const match = this.props.pathname.match(/^\/event\/(.+)$/);
     const params = new URLSearchParams(this.props.location.search);
+    const attendCode = params.get("attend");
     if (
       match &&
-      params.get("attend") === "true" &&
+      attendCode &&
       this.state.user &&
       (!prevState.user || this.props.pathname !== prevProps.pathname)
     ) {
-      this.handleAttend(match[1]);
+      this.handleAttend(match[1], attendCode);
     }
   };
 
@@ -588,9 +624,7 @@ export default class App extends React.Component {
 
               {/* Check-In Toast */}
               {this.props.pathname.match(/^\/event\/(.+)$/) &&
-                new URLSearchParams(this.props.location.search).get(
-                  "attend"
-                ) === "true" && (
+                new URLSearchParams(this.props.location.search).get("attend") && (
                   <div className="dash-checkin-toast">
                     {this.state.user
                       ? "Processing attendance..."
@@ -924,8 +958,7 @@ export default class App extends React.Component {
                                                             window.location
                                                               .origin +
                                                               "/event/" +
-                                                              x.id +
-                                                              "?attend=true"
+                                                              x.id
                                                           )}
                                                         />
                                                       </View>

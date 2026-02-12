@@ -23,6 +23,7 @@ const path = require("path"),
     res.setHeader("Access-Control-Allow-Methods", ["POST", "OPTIONS", "GET"]);
     res.setHeader("Access-Control-Allow-Headers", [
       "Content-Type",
+      "Authorization",
       "Access-Control-Request-Method",
       "Access-Control-Request-Methods",
       "Access-Control-Request-Headers"
@@ -73,6 +74,7 @@ const path = require("path"),
       extra
     });
   },
+  crypto = require("crypto"),
   timeout = require("connect-timeout"),
   //fetch = require("node-fetch"),
   express = require("express"),
@@ -85,7 +87,8 @@ const path = require("path"),
     Timestamp,
     FieldValue,
     Filter
-  } = require("firebase-admin/firestore");
+  } = require("firebase-admin/firestore"),
+  { getAuth } = require("firebase-admin/auth");
 //FIREBASEADMIN = FIREBASEADMIN.toSource(); //https://dashboard.stripe.com/account/apikeys
 //serviceAccount = require('./passport-service.json');
 /*fs = require('fs');
@@ -218,58 +221,116 @@ issue
       })
     })
   })*/
+  .post("/code", async (req, res) => {
+    if (allowOriginType(req.headers.origin, req, res))
+      return RESSEND(res, {
+        statusCode,
+        statusText: "not a secure origin-referer-to-host protocol"
+      });
+
+    // Verify Firebase ID token
+    const authHeader = req.headers.authorization || "";
+    const idToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    if (!idToken) {
+      return res.status(401).send({ statusCode: 401, message: "Missing authorization token" });
+    }
+    let decoded;
+    try {
+      decoded = await getAuth().verifyIdToken(idToken);
+    } catch (err) {
+      return res.status(401).send({ statusCode: 401, message: "Invalid authorization token" });
+    }
+    const studentId = (decoded.email || "").split("@")[0];
+    if (!studentId) {
+      return res.status(401).send({ statusCode: 401, message: "No email in token" });
+    }
+
+    const eventId = req.body.eventId;
+    const evenT = await db.collection("events").doc(eventId).get();
+    if (!evenT.exists) {
+      return res.send({ statusCode, statusText, message: eventId + " event doesn't exist" });
+    }
+    const event = evenT.data();
+
+    // Already attended — no code generated
+    if (event.attendees.includes(studentId)) {
+      return res.send({ statusCode, statusText, message: "already attended.", title: event.title });
+    }
+
+    // Check if a code already exists for this student+event
+    const codeDocId = studentId + "_" + eventId;
+    const existing = await db.collection("attendanceCodes").doc(codeDocId).get();
+    if (existing.exists) {
+      return res.send({ statusCode, statusText, code: existing.data().code });
+    }
+
+    // Generate a new one-time code
+    const code = crypto.randomBytes(4).toString("hex");
+    await db.collection("attendanceCodes").doc(codeDocId).set({
+      code,
+      studentId,
+      eventId
+    });
+    res.send({ statusCode, statusText, code });
+  })
   .post("/attend", async (req, res) => {
     if (allowOriginType(req.headers.origin, req, res))
       return RESSEND(res, {
         statusCode,
         statusText: "not a secure origin-referer-to-host protocol"
       });
-    const evenT = await db.collection("events").doc(req.body.eventId).get();
 
+    // Verify Firebase ID token
+    const authHeader = req.headers.authorization || "";
+    const idToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    if (!idToken) {
+      return res.status(401).send({ statusCode: 401, message: "Missing authorization token" });
+    }
+    let decoded;
+    try {
+      decoded = await getAuth().verifyIdToken(idToken);
+    } catch (err) {
+      return res.status(401).send({ statusCode: 401, message: "Invalid authorization token" });
+    }
+    const studentId = (decoded.email || "").split("@")[0];
+    if (!studentId) {
+      return res.status(401).send({ statusCode: 401, message: "No email in token" });
+    }
+
+    // Validate one-time code
+    const eventId = req.body.eventId;
+    const codeDocId = studentId + "_" + eventId;
+    const codeDoc = await db.collection("attendanceCodes").doc(codeDocId).get();
+    if (!codeDoc.exists || codeDoc.data().code !== req.body.code) {
+      return res.status(403).send({ statusCode: 403, message: "Invalid or missing attendance code" });
+    }
+
+    const evenT = await db.collection("events").doc(eventId).get();
     if (!evenT.exists) {
-      console.log(req.body.eventId + " event doesn't exist.");
-      //console.log((await evenT).data());
-      return res.send({
-        statusCode,
-        statusText,
-        message: req.body.eventId + " event doesn't exist",
-        title: ""
-      });
+      return res.send({ statusCode, statusText, message: eventId + " event doesn't exist", title: "" });
     }
     const event = evenT.data();
-    console.log(req.body.studentId + " student.");
-    if (event.attendees.includes(req.body.studentId)) {
-      console.log("already attended.");
-      return res.send({
-        statusCode,
-        statusText,
-        message: "already attended.",
-        title: event.title
-      });
+
+    if (event.attendees.includes(studentId)) {
+      // Clean up the code since they already attended
+      await db.collection("attendanceCodes").doc(codeDocId).delete();
+      return res.send({ statusCode, statusText, message: "already attended.", title: event.title });
     }
-    await db
-      .collection("events")
-      .doc(req.body.eventId)
-      .update({
-        attendees: FieldValue.arrayUnion(req.body.studentId)
-      });
-    await db
-      .collection("leaders")
-      .doc(req.body.studentId)
-      .set(
-        {
-          eventsAttended: FieldValue.increment(1),
-          address: req.body.address || "",
-          fullName: req.body.fullName || ""
-        },
-        { merge: true }
-      );
-    res.send({
-      statusCode,
-      statusText,
-      message: "attended",
-      title: event.title
+
+    await db.collection("events").doc(eventId).update({
+      attendees: FieldValue.arrayUnion(studentId)
     });
+    await db.collection("leaders").doc(studentId).set(
+      {
+        eventsAttended: FieldValue.increment(1),
+        address: req.body.address || "",
+        fullName: req.body.fullName || ""
+      },
+      { merge: true }
+    );
+    // Delete the one-time code after successful attendance
+    await db.collection("attendanceCodes").doc(codeDocId).delete();
+    res.send({ statusCode, statusText, message: "attended", title: event.title });
   });
 //https://stackoverflow.com/questions/31928417/chaining-multiple-pieces-of-middleware-for-specific-route-in-expressjs
 app.use("/api", nonbody, issue); //methods on express.Router() or use a scoped instance

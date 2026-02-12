@@ -84,6 +84,11 @@ extension Message: Decodable {
         self.title = try podcastContainer.decode(String.self, forKey: .title)
     }
 }
+struct CodeResponse: Decodable {
+    var code: String?
+    var message: String?
+    var title: String?
+}
 struct Event {
     var id: String
     var title: String
@@ -345,114 +350,86 @@ struct ContentView: View {
               }
         }
     }
-    func attendEvent (eventId:String, studentId:String, address:String, fullName:String) {
-        //if studentId == "" {return}
+    func extractEventId(from raw: String) -> String {
+        // Handle full URLs like https://pass.contact/event/abc123
+        if let range = raw.range(of: "/event/") {
+            let after = raw[range.upperBound...]
+            // Strip query params if any
+            if let q = after.firstIndex(of: "?") {
+                return String(after[..<q])
+            }
+            return String(after)
+        }
+        // Already a bare event ID
+        return raw
+    }
+
+    func attendEvent(eventId: String, address: String, fullName: String) {
+        guard let user = Auth.auth().currentUser else { return }
         Task {
-            let parameterDictionary = ["eventId" : eventId, "studentId": studentId,
-                                       "address": address,
-                                       "fullName": fullName]
-            let urlString = "https://pass.contact/api/attend"
-            let url = URL(string: urlString)!
-            print("searching \(urlString)")
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("Application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue("aplication/x-www-form-urlencoded", forHTTPHeaderField: "String")
-            guard let httpBody = try? JSONSerialization.data(withJSONObject: parameterDictionary, options: []) else {
+            guard let idToken = try? await user.getIDToken() else {
+                print("Failed to get ID token")
                 return
             }
-            request.httpBody = httpBody
-            /*let postString = "eventId=\(eventId)&studentId=\(studentId)"
-            request.httpBody = postString.data(using: .utf8)*/
-            //let (data, _) = try await URLSession.shared.data(from: url)
-            
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                //if error != nil { return print(error) }
-                if let data = data{
-                    do {
-                        let messenger = try JSONDecoder().decode(Message.self, from: data)
-                        print("found \(messenger)")
-                        DispatchQueue.main.async {
-                            withAnimation(.spring()) {
-                                if messenger.message == "attended" || messenger.message == "already attended." {
-                                    if messenger.message == "attended" {
-                                        eventTitle = messenger.message + " " + messenger.title
-                                    } else {
-                                        eventTitle = messenger.message
-                                    }
-                                    show = "list"
-                                }
-                            }
-                        }
-                    
-                    } catch {
-                        print(error)
+
+            // Step 1: Get one-time code
+            let codeBody = try? JSONSerialization.data(withJSONObject: ["eventId": eventId])
+            var codeReq = URLRequest(url: URL(string: "https://pass.contact/api/code")!)
+            codeReq.httpMethod = "POST"
+            codeReq.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            codeReq.setValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+            codeReq.httpBody = codeBody
+
+            guard let (codeData, _) = try? await URLSession.shared.data(for: codeReq),
+                  let codeRes = try? JSONDecoder().decode(CodeResponse.self, from: codeData) else {
+                print("Code request failed")
+                return
+            }
+
+            if codeRes.message == "already attended." {
+                DispatchQueue.main.async {
+                    withAnimation(.spring()) {
+                        self.eventTitle = "already attended."
+                        self.show = "list"
                     }
+                }
+                return
+            }
+
+            guard let code = codeRes.code else {
+                print("No code returned: \(codeRes.message ?? "")")
+                return
+            }
+
+            // Step 2: Attend with code
+            let attendBody = try? JSONSerialization.data(withJSONObject: [
+                "eventId": eventId,
+                "code": code,
+                "fullName": fullName,
+                "address": address
+            ])
+            var attendReq = URLRequest(url: URL(string: "https://pass.contact/api/attend")!)
+            attendReq.httpMethod = "POST"
+            attendReq.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            attendReq.setValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+            attendReq.httpBody = attendBody
+
+            guard let (attendData, _) = try? await URLSession.shared.data(for: attendReq),
+                  let messenger = try? JSONDecoder().decode(Message.self, from: attendData) else {
+                print("Attend request failed")
+                return
+            }
+
+            DispatchQueue.main.async {
+                withAnimation(.spring()) {
+                    if messenger.message == "attended" {
+                        self.eventTitle = messenger.message + " " + messenger.title
+                    } else {
+                        self.eventTitle = messenger.message
+                    }
+                    self.show = "list"
                 }
             }
-            task.resume()
-            /*let docRef = db.collection("events").document(eventId)
-            
-            do {
-                let document = try await docRef.getDocument()
-                if document.exists {
-                    alertCamera = "Thank you"
-                    let dataDescription = document.data().map(String.init(describing:)) ?? "nil"
-                    print("Document data: \(dataDescription)")
-                    let event = Event(id: document.documentID,title: document["title"] as? String ?? "", date: document["date"] as? String ?? "",location: document["location"] as? String ?? "",attendees: document["attendees"] as? Array<String> ?? [],descriptionLink: document["descriptionLink"] as? String ?? "")
-                    let savedStudentId = defaults.object(forKey:"StudentId") as? String ?? String()
-                    if savedStudentId == "" || event.attendees.contains(savedStudentId) {
-                        return
-                    }
-                    
-                    let eventRef = db.collection("events").document(eventId)
-                    
-                    // Set the "capital" field of the city 'DC'
-                    do {
-                        try await eventRef.updateData([
-                            "attendees": FieldValue.arrayUnion([savedStudentId])
-                        ])
-                        print("Document successfully updated")
-                    } catch {
-                        print("Error updating document: \(error)")
-                    }
-                    
-                    let leadersRef = db.collection("leaders").document(savedStudentId)
-                    
-                    // Set the "capital" field of the city 'DC'
-                    let savedFullName = defaults.object(forKey:"FullName") as? String ?? String()
-                    let savedAddress = defaults.object(forKey:"Address") as? String ?? String()
-                    do {
-
-                        let document = try await leadersRef.getDocument()
-                        if document.exists {
-                            try await leadersRef.updateData([
-                                "eventsAttended": FieldValue.increment(Int64(1)),
-                                "fullName": savedFullName,
-                                "address": savedAddress
-                            ])
-                            print("Document successfully updated")
-                        } else {
-                            try await leadersRef.setData([
-                                "eventsAttended": FieldValue.increment(Int64(1)),
-                                "fullName": savedFullName,
-                                "address": savedAddress
-                            ])
-                            print("Document successfully added")
-                        }
-                    } catch {
-                        print("Error updating document: \(error)")
-                    }
-                    
-                } else {
-                    alertCamera = "Event doesn't exist"
-                    print("Document does not exist")
-                }
-            } catch {
-                alertCamera = "Event doesn't exist"
-                print("Error getting document: \(error)")
-            }*/
-            
         }
     }
     let logo = Image("PassportWeek_Logo")
@@ -824,11 +801,11 @@ struct ContentView: View {
     private func handleScannerResponse(_ response: Result<ScanResult, ScanError>) {
         switch response {
         case .success(let result):
-            let studentIdSlug = Auth.auth().currentUser?.email?.components(separatedBy: "@").first ?? ""
+            let eventId = extractEventId(from: result.string)
             let savedAddress = defaults.object(forKey: "Address") as? String ?? ""
             let savedFullName = defaults.object(forKey: "FullName") as? String ?? ""
-            if !studentIdSlug.isEmpty {
-                attendEvent(eventId: result.string, studentId: studentIdSlug, address: savedAddress, fullName: savedFullName)
+            if Auth.auth().currentUser != nil {
+                attendEvent(eventId: eventId, address: savedAddress, fullName: savedFullName)
             }
         case .failure(let error):
             withAnimation(.spring()) {
