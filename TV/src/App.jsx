@@ -632,6 +632,46 @@ export default class App extends React.Component {
                   </div>
                 )}
 
+              {/* Event Itinerary */}
+              <div className="card">
+                <h3>Events</h3>
+                {this.state.events.length === 0 ? (
+                  <p style={{ opacity: 0.5 }}>No events yet.</p>
+                ) : (
+                  <div className="itinerary-list">
+                    {this.state.events
+                      .sort((a, b) => new Date(a.date) - new Date(b.date))
+                      .map((x) => (
+                        <div key={x.id} className="itinerary-item">
+                          <div className="itinerary-date">
+                            {x.date
+                              ? new Date(x.date).toLocaleDateString(undefined, {
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric"
+                                })
+                              : "TBD"}
+                            {x.date && (
+                              <span className="itinerary-time">
+                                {new Date(x.date).toLocaleTimeString(undefined, {
+                                  hour: "numeric",
+                                  minute: "2-digit"
+                                })}
+                              </span>
+                            )}
+                          </div>
+                          <div className="itinerary-details">
+                            <strong>{x.title}</strong>
+                            <span className="itinerary-meta">
+                              {[x.location, x.department].filter(Boolean).join(" · ")}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+
               {/* Admin Tabs Section */}
               {this.state.user?.admin && (
                 <div className="dash-admin-section">
