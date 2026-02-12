@@ -147,7 +147,14 @@ export default class App extends React.Component {
 
   handleAttend = async (eventId, existingCode) => {
     const { user } = this.state;
-    if (!eventId || !user) return;
+    if (!eventId) {
+      window.alert("No event ID found in QR code.");
+      return;
+    }
+    if (!user) {
+      window.alert("Please sign in first.");
+      return;
+    }
 
     const auth = getAuth();
     if (!auth.currentUser) {
@@ -172,7 +179,7 @@ export default class App extends React.Component {
         }).then((r) => r.json());
 
         if (codeRes.message === "already attended.") {
-          window.alert("already attended." + (codeRes.title ? " " + codeRes.title : ""));
+          window.alert("Already attended" + (codeRes.title ? ": " + codeRes.title : ""));
           this.props.navigate("/");
           return;
         }
@@ -198,7 +205,7 @@ export default class App extends React.Component {
       window.alert(attendRes.message + (attendRes.title ? ": " + attendRes.title : ""));
       this.props.navigate("/");
     } catch (err) {
-      standardCatch(err, "Attendance Error");
+      window.alert("Attendance failed: " + err.message);
     }
   };
 
