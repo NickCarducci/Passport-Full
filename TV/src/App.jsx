@@ -1031,7 +1031,7 @@ export default class App extends React.Component {
                       >
                         <div className="medal">{medals[i]}</div>
                         <div className="podium-name">
-                          {leader.username || leader.id}
+                          {leader.username || "Anonymous"}
                         </div>
                         <div className="podium-score">
                           {leader.eventsAttended}
@@ -1051,7 +1051,7 @@ export default class App extends React.Component {
                         <strong style={{ marginRight: "15px", opacity: 0.5 }}>
                           {i + 4}
                         </strong>{" "}
-                        {leader.username || leader.id}
+                        {leader.username || "Anonymous"}
                       </span>
                       <span style={{ fontWeight: "bold" }}>
                         {leader.eventsAttended} pts

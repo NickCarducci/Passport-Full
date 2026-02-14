@@ -122,7 +122,7 @@ struct LeaderView: View {
     @Binding public var eventsAttended:Int64
     var body: some View {
         HStack{
-            Text("\(!username.isEmpty ? username : studentId): \(eventsAttended)")
+            Text("\(!username.isEmpty ? username : "Anonymous"): \(eventsAttended)")
                 .padding(10)
         }
     }
