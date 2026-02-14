@@ -504,7 +504,7 @@ class MainActivity : AppCompatActivity() {
                     val studentId = doc.id
                     val username = doc.getString("username")
                     val eventsAttended = doc.getLong("eventsAttended")
-                    val displayName = if (!username.isNullOrEmpty()) username else studentId
+                    val displayName = if (!username.isNullOrEmpty()) username else "Anonymous"
                     leaderNames.add("$displayName: $eventsAttended")
                 }
 
