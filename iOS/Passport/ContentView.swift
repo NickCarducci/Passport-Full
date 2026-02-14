@@ -58,15 +58,19 @@ struct EventView: View {
     @Binding public var location:String
     @Binding public var date:String
     @Binding public var descriptionLink:String
+    var onTap: () -> Void
     @Environment(\.colorScheme) var colorScheme
     let defaults = UserDefaults.standard
     var body: some View {
-        HStack{
-            Link("\(dateFromString(date:date)) \(title): \(location)",
-                 destination: URL(string: descriptionLink)!)
-                .foregroundStyle(colorScheme == .dark ? .white : .black)
-                .padding(10)
+        Button(action: onTap) {
+            HStack{
+                Text("\(dateFromString(date:date)) \(title): \(location)")
+                    .foregroundStyle(colorScheme == .dark ? .white : .black)
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 struct Message {
@@ -158,15 +162,86 @@ extension Leaders: Decodable {
         self.features = try podcastContainer.decode([Leader].self, forKey: .features)
     }
 }
+
+struct EventDetailView: View {
+    let event: Event
+    @Binding var isPresented: Bool
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        NavigationView {
+            VStack(alignment: .leading, spacing: 24) {
+                Text(event.title)
+                    .font(.title)
+                    .bold()
+                    .padding(.top, 32)
+
+                Text(dateFromString(date: event.date), style: .date)
+                    .font(.body)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Location:")
+                        .font(.headline)
+                    Text(event.location)
+                        .font(.body)
+                }
+
+                Button(action: {
+                    openDirections(to: event.location)
+                }) {
+                    HStack {
+                        Image(systemName: "map.fill")
+                        Text("Get Directions")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+                .padding(.top, 8)
+
+                Spacer()
+
+                Button(action: {
+                    isPresented = false
+                }) {
+                    Text("Back")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .foregroundColor(.blue)
+                }
+            }
+            .padding(24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(Color(uiColor: .systemBackground))
+            .navigationBarHidden(true)
+        }
+    }
+
+    private func openDirections(to location: String) {
+        let encodedLocation = location.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? location
+
+        // Try to open in Apple Maps
+        if let url = URL(string: "http://maps.apple.com/?q=\(encodedLocation)") {
+            UIApplication.shared.open(url)
+        } else {
+            // Fallback to Google Maps in browser
+            if let url = URL(string: "https://www.google.com/maps/search/?api=1&query=\(encodedLocation)") {
+                UIApplication.shared.open(url)
+            }
+        }
+    }
+}
 enum FirebaseError: Error {
     case Error
     case VerificatrionEmpty
 }
 struct ContentView: View {
     //@AppStorage("username") var username: String = ""
-    
+
     @Environment(\.scenePhase) var scenePhase
-    
+
     @State var alertCamera = "Go to Settings, Passport, and then Allow Passport to Access: Camera"
     @State var address = ""
     @State var promptAddress = false
@@ -206,13 +281,15 @@ struct ContentView: View {
     @State private var cameraEnabled = true
     #endif
     @State private var isAtBottom = false
-    
+
     @State private var rocks = [Event]()
     @State private var leaders = [Leader]()
     @State public var show: String = "home"
     @State public var openedEvent: String = ""
     @State public var eventTitle: String = "Scholarship week"
     @State public var eventBody: String = ""
+    @State private var showEventDetail = false
+    @State private var selectedEvent: Event?
 
     init() {}
 
@@ -565,11 +642,19 @@ struct ContentView: View {
                 }
             }
             .padding()
-            
+
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach($rocks.indices, id: \.self) { index in
-                        EventView(title: $rocks[index].title, location: $rocks[index].location, date: $rocks[index].date, descriptionLink: $rocks[index].descriptionLink)
+                        EventView(
+                            title: $rocks[index].title,
+                            location: $rocks[index].location,
+                            date: $rocks[index].date,
+                            descriptionLink: $rocks[index].descriptionLink,
+                            onTap: {
+                                handleEventTap(event: rocks[index])
+                            }
+                        )
                         Divider()
                     }
                     ScrollPositionTracker(coordinateSpaceName: "listScroll", isAtEdge: $isAtBottom)
@@ -578,6 +663,11 @@ struct ContentView: View {
             .coordinateSpace(name: "listScroll")
         }
         .onAppear { getEvents() }
+        .sheet(isPresented: $showEventDetail) {
+            if let event = selectedEvent {
+                EventDetailView(event: event, isPresented: $showEventDetail)
+            }
+        }
     }
 
     @ViewBuilder
@@ -663,6 +753,28 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    func handleEventTap(event: Event) {
+        if !event.descriptionLink.isEmpty && isValidHttpsUrl(event.descriptionLink) {
+            // Open URL in Safari if valid HTTPS
+            if let url = URL(string: event.descriptionLink) {
+                UIApplication.shared.open(url)
+            }
+        } else {
+            // Show event detail view with directions
+            selectedEvent = event
+            showEventDetail = true
+        }
+    }
+
+    func isValidHttpsUrl(_ urlString: String) -> Bool {
+        guard let url = URL(string: urlString),
+              let scheme = url.scheme,
+              let host = url.host else {
+            return false
+        }
+        return scheme == "https" && !host.isEmpty
     }
 
     @ViewBuilder

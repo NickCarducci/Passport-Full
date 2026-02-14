@@ -1445,13 +1445,17 @@ export default class App extends React.Component {
                           />
                           <input
                             value={this.state.newDescriptionLink}
-                            onChange={(e) =>
-                              this.setState({
-                                newDescriptionLink: e.target.value
-                              })
-                            }
-                            required={true}
-                            placeholder="description link"
+                            onChange={(e) => {
+                              const url = e.target.value.trim();
+                              // Allow empty or validate HTTPS URL
+                              if (url === "" || (url.startsWith("https://") && url.length > 8)) {
+                                this.setState({ newDescriptionLink: url });
+                              }
+                            }}
+                            required={false}
+                            placeholder="description link (HTTPS only, optional)"
+                            pattern="https://.*"
+                            title="Must be a valid HTTPS URL or leave empty"
                           />
                           <input
                             value={this.state.newLocation}

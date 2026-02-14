@@ -24,14 +24,14 @@ service cloud.firestore {
 
     match /leaders/{leaderId}{
       allow read: if true;
-      // Users can update their own username; attendance fields are written by the Admin SDK
+      // Users can update their own profile fields (username, fullName, address); attendance fields are written by the Admin SDK
       allow update: if request.auth != null
                     && request.auth.token.email.split("@")[0] == leaderId
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["username"]);
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["username", "fullName", "address"]);
       // Allow users to create their own leader doc if it doesn't exist yet
       allow create: if request.auth != null
                     && request.auth.token.email.split("@")[0] == leaderId
-                    && request.resource.data.keys().hasOnly(["username", "eventsAttended"])
+                    && request.resource.data.keys().hasOnly(["username", "fullName", "address", "eventsAttended"])
                     && request.resource.data.eventsAttended == 0;
     }
 
