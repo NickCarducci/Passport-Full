@@ -802,6 +802,12 @@ export default class App extends React.Component {
                 <li><strong>Display Name:</strong> Optional user-provided name for leaderboard display</li>
                 <li><strong>Mailing Address:</strong> Collected from prize winners for gift card fulfillment</li>
               </ul>
+              <p style={{ fontSize: "0.9rem", marginTop: "10px", opacity: 0.85 }}>
+                <strong>Note on Microsoft Authentication:</strong> When you sign in with Microsoft, Firebase Authentication
+                may receive additional profile information from your Microsoft account (such as your name or profile photo).
+                This data is processed solely for authentication purposes and is <strong>not stored in our database</strong>.
+                We only store your email address and derived student ID.
+              </p>
 
               <h3>2. App Activity</h3>
               <ul>
