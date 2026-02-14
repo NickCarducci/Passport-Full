@@ -393,7 +393,125 @@ export default class App extends React.Component {
     const rankDisplay = rank >= 0 ? rank + 1 : "—";
     return (
       <div className="admin-root">
-        {this.props.pathname === "/terms" ? (
+        {this.props.pathname === "/account" ? (
+          <div className="privacy-policy-page">
+            <div className="privacy-header">
+              <h1>Account Settings</h1>
+              <button
+                className="btn btn-primary"
+                onClick={() => this.props.navigate("/")}
+              >
+                ← Back to App
+              </button>
+            </div>
+            <div className="privacy-content">
+              {!this.state.auth ? (
+                <p>Please sign in to manage your account.</p>
+              ) : (
+                <>
+                  <h2>Your Information</h2>
+                  <p><strong>Email:</strong> {this.state.auth.email}</p>
+                  <p><strong>Student ID:</strong> {this.state.user?.studentId || "Loading..."}</p>
+                  <p><strong>Display Name:</strong> {myLeader?.username || "Not set"}</p>
+                  <p><strong>Events Attended:</strong> {eventsAttended}</p>
+                  <p><strong>Current Rank:</strong> {rankDisplay}</p>
+
+                  <h2>Data Management</h2>
+
+                  <div style={{ marginBottom: "20px" }}>
+                    <h3>Export Your Data</h3>
+                    <p>Download all your attendance records in CSV format.</p>
+                    <CSVLink
+                      className="btn btn-primary"
+                      data={[
+                        ["Action", "Details"],
+                        ["Student ID", this.state.user?.studentId || ""],
+                        ["Email", this.state.auth.email || ""],
+                        ["Display Name", myLeader?.username || ""],
+                        ["Events Attended", eventsAttended],
+                        ["Current Rank", rankDisplay],
+                        ["Account Created", this.state.user?.createdAt?.toDate?.()?.toLocaleDateString() || "Unknown"]
+                      ]}
+                      filename={`passport-data-${this.state.user?.studentId || "export"}.csv`}
+                    >
+                      Download My Data (CSV)
+                    </CSVLink>
+                  </div>
+
+                  <div style={{ marginBottom: "20px" }}>
+                    <h3>Remove From Leaderboard</h3>
+                    <p>Hide your display name from the public leaderboard while keeping your account.</p>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => {
+                        const id = this.state.user?.studentId;
+                        if (!id) return;
+                        const ref = doc(firestore, "leaders", id);
+                        if (myLeader) {
+                          updateDoc(ref, { username: "" })
+                            .then(() => window.alert("Display name removed from leaderboard"))
+                            .catch((err) => window.alert("Failed: " + err.message));
+                        } else {
+                          window.alert("You're not on the leaderboard yet.");
+                        }
+                      }}
+                    >
+                      Remove Display Name
+                    </button>
+                  </div>
+
+                  <div style={{
+                    marginTop: "40px",
+                    padding: "20px",
+                    border: "2px solid var(--danger)",
+                    borderRadius: "var(--radius-md)",
+                    backgroundColor: "#fff5f5"
+                  }}>
+                    <h3 style={{ color: "var(--danger)" }}>Delete Account</h3>
+                    <p>
+                      Permanently delete your account and all associated data. This action cannot be undone.
+                      You will be removed from the leaderboard and disqualified from any pending prizes.
+                    </p>
+                    <p><strong>To delete your account:</strong></p>
+                    <ol>
+                      <li>Contact Monmouth University IT Services or the Office of the Provost</li>
+                      <li>Email: sayists@icloud.com or visit the Provost Office</li>
+                      <li>Provide your student ID: <strong>{this.state.user?.studentId}</strong></li>
+                      <li>Request account deletion</li>
+                      <li>Your data will be permanently deleted within 30 days</li>
+                    </ol>
+                    <p style={{ fontSize: "0.9rem", marginTop: "15px", opacity: 0.8 }}>
+                      <strong>Note:</strong> Account deletion is processed manually to ensure security.
+                      Automated deletion will be available in a future update.
+                    </p>
+                  </div>
+
+                  <h2 style={{ marginTop: "40px" }}>Privacy & Legal</h2>
+                  <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
+                    <span
+                      onClick={() => this.props.navigate("/privacy")}
+                      style={{ color: "var(--primary)", cursor: "pointer", textDecoration: "underline" }}
+                    >
+                      Privacy Policy
+                    </span>
+                    <span
+                      onClick={() => this.props.navigate("/terms")}
+                      style={{ color: "var(--primary)", cursor: "pointer", textDecoration: "underline" }}
+                    >
+                      Terms of Service
+                    </span>
+                    <span
+                      onClick={() => this.props.navigate("/rules")}
+                      style={{ color: "var(--primary)", cursor: "pointer", textDecoration: "underline" }}
+                    >
+                      Official Rules
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        ) : this.props.pathname === "/terms" ? (
           <div className="privacy-policy-page">
             <div className="privacy-header">
               <h1>Terms of Service</h1>
@@ -503,13 +621,17 @@ export default class App extends React.Component {
                 This attendance recognition program is sponsored by Monmouth University,
                 400 Cedar Avenue, West Long Branch, NJ 07764, through the Office of the Provost.
               </p>
+              <p>
+                <strong>Important Disclosure:</strong> Apple Inc. and Google LLC are not sponsors
+                of this program and are not involved in any way with the distribution of prizes.
+              </p>
 
               <h2>2. Eligibility</h2>
               <p>Open to currently enrolled Monmouth University students only. Participants must:</p>
               <ul>
                 <li>Have active Monmouth University student credentials</li>
                 <li>Be enrolled during the Student Scholarship Week period</li>
-                <li>Be at least 18 years old, or have parental consent if under 18</li>
+                <li>Be at least 16 years old, or have parental consent if under 18</li>
                 <li>Comply with university policies and academic integrity standards</li>
               </ul>
               <p>
@@ -661,32 +783,43 @@ export default class App extends React.Component {
                 to help students track event attendance during Scholarship Week and other campus events.
               </p>
 
-              <h2>Information We Collect</h2>
-              <h3>Authentication Data</h3>
+              <h2>Age Requirements</h2>
               <p>
-                We use Microsoft OAuth for authentication. When you sign in, we collect:
+                <strong>This app is intended for users 16 years of age and older.</strong> Users
+                under 18 must have parental or guardian consent to participate. Our services are
+                not directed to children under the age of 13, and we do not knowingly collect
+                personal information from children under 13. If you believe we have inadvertently
+                collected such information, please contact us immediately at sayists@icloud.com.
               </p>
+
+              <h2>Information We Collect</h2>
+              <p>We collect the following categories of information:</p>
+
+              <h3>1. Identifiers</h3>
               <ul>
-                <li>Your Monmouth University email address</li>
-                <li>Student ID (derived from email)</li>
-                <li>Display name (optional, user-provided)</li>
+                <li><strong>University Email Address:</strong> Used for authentication and account management</li>
+                <li><strong>Student ID:</strong> Derived from your email, used to uniquely identify your account</li>
+                <li><strong>Display Name:</strong> Optional user-provided name for leaderboard display</li>
+                <li><strong>Mailing Address:</strong> Collected from prize winners for gift card fulfillment</li>
               </ul>
 
-              <h3>Event Attendance Data</h3>
-              <p>When you attend events using the app, we collect:</p>
+              <h3>2. App Activity</h3>
               <ul>
-                <li>Event ID and timestamp</li>
-                <li>Your attendance records</li>
-                <li>Leaderboard ranking information</li>
+                <li><strong>Event Attendance Timestamps:</strong> Date and time of each event check-in</li>
+                <li><strong>QR Code Scan Data:</strong> Verification codes generated when scanning event QR codes</li>
+                <li><strong>Attendance Records:</strong> Total events attended and historical attendance data</li>
+                <li><strong>Leaderboard Rankings:</strong> Your position relative to other participants</li>
               </ul>
 
               <h2>How We Use Your Information</h2>
-              <p>We use the collected information to:</p>
+              <p>We use the collected information for the following purposes:</p>
               <ul>
-                <li>Verify student identity for event check-ins</li>
-                <li>Track attendance for prizes and recognition</li>
-                <li>Display leaderboard rankings</li>
-                <li>Generate attendance reports for administrators</li>
+                <li><strong>Authentication:</strong> Verify your student identity using Microsoft OAuth</li>
+                <li><strong>Event Check-ins:</strong> Record attendance when you scan QR codes at events</li>
+                <li><strong>Prize Distribution:</strong> Determine winners and mail gift cards to recipients</li>
+                <li><strong>Leaderboard Display:</strong> Show real-time rankings of top participants</li>
+                <li><strong>Analytics:</strong> Generate anonymized metrics for event performance and planning</li>
+                <li><strong>Fraud Prevention:</strong> Detect and prevent duplicate check-ins and system manipulation</li>
               </ul>
 
               <h2>Data Storage and Security</h2>
@@ -697,24 +830,122 @@ export default class App extends React.Component {
 
               <h2>Data Sharing</h2>
               <p>
-                We do not sell or share your personal information with third parties.
-                Event attendance data may be shared with university administrators for
-                academic and event planning purposes.
+                <strong>We do not sell, rent, or trade your personal information to third parties
+                for marketing purposes.</strong> Your data is only shared in the following limited circumstances:
+              </p>
+              <ul>
+                <li>
+                  <strong>Monmouth University (Sponsor):</strong> We share your identifiers (name, student ID,
+                  email, mailing address) and attendance records with the Office of the Provost for prize
+                  verification and gift card fulfillment. The University also receives anonymized, aggregated
+                  attendance data for event performance metrics and future planning.
+                </li>
+                <li>
+                  <strong>Service Providers:</strong> We use Google Firebase for data storage and Microsoft
+                  for authentication. These providers process data on our behalf and are contractually obligated
+                  to protect your information.
+                </li>
+                <li>
+                  <strong>Legal Requirements:</strong> We may disclose information if required by law, court order,
+                  or government regulation.
+                </li>
+              </ul>
+              <p>
+                We do not share your data with advertisers, data brokers, or other third-party commercial entities.
+              </p>
+
+              <h2>Device Permissions</h2>
+              <p>The app requests the following device permissions:</p>
+              <ul>
+                <li>
+                  <strong>Camera:</strong> Required to scan QR codes at events for attendance verification.
+                  The camera is only active when you use the scan feature and no images are stored.
+                </li>
+                <li>
+                  <strong>Internet:</strong> Required to sync attendance data with our servers
+                  and authenticate your account.
+                </li>
+              </ul>
+
+              <h2>Data Retention</h2>
+              <p>
+                We retain your attendance data for the duration of your enrollment at Monmouth University
+                plus one academic year for historical records and prize fulfillment. After this period,
+                personally identifiable information is anonymized or deleted.
               </p>
 
               <h2>Your Rights</h2>
               <p>You have the right to:</p>
               <ul>
-                <li>Access your personal data</li>
-                <li>Request correction of inaccurate data</li>
-                <li>Request deletion of your account and data</li>
+                <li><strong>Access:</strong> Request a copy of your personal data</li>
+                <li><strong>Correction:</strong> Request correction of inaccurate data</li>
+                <li><strong>Deletion:</strong> Request deletion of your account and data (see below)</li>
+                <li><strong>Data Portability:</strong> Receive your attendance records in CSV format</li>
+                <li><strong>Opt-Out:</strong> Remove your display name from the public leaderboard</li>
               </ul>
+              <p>
+                To exercise any of these rights, contact the Office of the Provost or IT Services
+                with your student ID.
+              </p>
+
+              <h2>Account Deletion</h2>
+              <p>
+                You can request deletion of your account and all associated data at any time.
+              </p>
+              <p><strong>Via Web App:</strong></p>
+              <ul>
+                <li>
+                  Visit{" "}
+                  <span
+                    onClick={() => this.props.navigate("/account")}
+                    style={{ color: "var(--primary)", cursor: "pointer", textDecoration: "underline" }}
+                  >
+                    Account Settings
+                  </span>{" "}
+                  (or navigate to <code>https://pass.contact/account</code>)
+                </li>
+                <li>Follow the account deletion instructions</li>
+              </ul>
+              <p><strong>Via Mobile App:</strong></p>
+              <ul>
+                <li>Open the app menu and select "Account Settings"</li>
+                <li>Follow the deletion instructions provided</li>
+              </ul>
+              <p><strong>Via Direct Contact:</strong></p>
+              <ol>
+                <li>Contact Monmouth University IT Services or the Office of the Provost</li>
+                <li>Provide your student ID and request account deletion</li>
+                <li>Your data will be permanently deleted within 30 days</li>
+              </ol>
+              <p>
+                <strong>Note:</strong> Deleting your account will remove you from the leaderboard and disqualify
+                you from any pending prize eligibility. Historical aggregate data (anonymized)
+                may be retained for university records.
+              </p>
+
+              <h2>Minors and Parental Consent</h2>
+              <p>
+                <strong>Users aged 16-17:</strong> You may use this app with parental or guardian consent.
+                We recommend that parents review this privacy policy and discuss data collection practices
+                with their children before allowing participation.
+              </p>
+              <p>
+                <strong>Children under 13:</strong> Our services are not directed to children under 13 years of age.
+                We do not knowingly collect personal information from children under 13. If we discover that we have
+                inadvertently collected information from a child under 13, we will promptly delete it. Parents who
+                believe we have collected information from their child under 13 should contact us at sayists@icloud.com.
+              </p>
 
               <h2>Contact Us</h2>
               <p>
-                For questions about this privacy policy or your data, please contact
-                Monmouth University IT Services.
+                For questions about this privacy policy, to exercise your data rights, or to
+                request account deletion, please contact:
               </p>
+              <ul>
+                <li>Monmouth University IT Services</li>
+                <li>Email: sayists@icloud.com</li>
+                <li>Office of the Provost</li>
+              </ul>
 
               <h2>Changes to This Policy</h2>
               <p>
@@ -737,6 +968,13 @@ export default class App extends React.Component {
               </div>
               <div className="dash-header-right">
                 <div className="dash-avatar">{emailInitial}</div>
+                <button
+                  className="dash-logout-btn"
+                  style={{ marginRight: "10px" }}
+                  onClick={() => this.props.navigate("/account")}
+                >
+                  Account
+                </button>
                 <button
                   className="dash-logout-btn"
                   onClick={() => {
