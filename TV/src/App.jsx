@@ -393,7 +393,89 @@ export default class App extends React.Component {
     const rankDisplay = rank >= 0 ? rank + 1 : "—";
     return (
       <div className="admin-root">
-        {this.props.pathname !== "/leaderboard" ? (
+        {this.props.pathname === "/privacy" ? (
+          <div className="privacy-policy-page">
+            <div className="privacy-header">
+              <h1>Privacy Policy</h1>
+              <button
+                className="btn btn-primary"
+                onClick={() => this.props.navigate("/")}
+              >
+                ← Back to App
+              </button>
+            </div>
+            <div className="privacy-content">
+              <p><strong>Last Updated:</strong> February 2026</p>
+
+              <h2>Introduction</h2>
+              <p>
+                Monmouth University Passport ("we," "our," or "us") operates this application
+                to help students track event attendance during Scholarship Week and other campus events.
+              </p>
+
+              <h2>Information We Collect</h2>
+              <h3>Authentication Data</h3>
+              <p>
+                We use Microsoft OAuth for authentication. When you sign in, we collect:
+              </p>
+              <ul>
+                <li>Your Monmouth University email address</li>
+                <li>Student ID (derived from email)</li>
+                <li>Display name (optional, user-provided)</li>
+              </ul>
+
+              <h3>Event Attendance Data</h3>
+              <p>When you attend events using the app, we collect:</p>
+              <ul>
+                <li>Event ID and timestamp</li>
+                <li>Your attendance records</li>
+                <li>Leaderboard ranking information</li>
+              </ul>
+
+              <h2>How We Use Your Information</h2>
+              <p>We use the collected information to:</p>
+              <ul>
+                <li>Verify student identity for event check-ins</li>
+                <li>Track attendance for prizes and recognition</li>
+                <li>Display leaderboard rankings</li>
+                <li>Generate attendance reports for administrators</li>
+              </ul>
+
+              <h2>Data Storage and Security</h2>
+              <p>
+                Your data is stored securely using Google Firebase services. We implement
+                appropriate security measures to protect your information from unauthorized access.
+              </p>
+
+              <h2>Data Sharing</h2>
+              <p>
+                We do not sell or share your personal information with third parties.
+                Event attendance data may be shared with university administrators for
+                academic and event planning purposes.
+              </p>
+
+              <h2>Your Rights</h2>
+              <p>You have the right to:</p>
+              <ul>
+                <li>Access your personal data</li>
+                <li>Request correction of inaccurate data</li>
+                <li>Request deletion of your account and data</li>
+              </ul>
+
+              <h2>Contact Us</h2>
+              <p>
+                For questions about this privacy policy or your data, please contact
+                Monmouth University IT Services.
+              </p>
+
+              <h2>Changes to This Policy</h2>
+              <p>
+                We may update this privacy policy from time to time. Continued use of the
+                app constitutes acceptance of any changes.
+              </p>
+            </div>
+          </div>
+        ) : this.props.pathname !== "/leaderboard" ? (
           this.state.auth && (
             <div className="dash-header">
               <div className="dash-header-left">
@@ -1037,6 +1119,9 @@ export default class App extends React.Component {
                   >
                     Export CSV
                   </CSVLink>
+                  <div onClick={() => this.props.navigate("/privacy")}>
+                    Privacy Policy
+                  </div>
                   <a href="#">App Store</a>
                   <a href="#">Play Store</a>
                 </div>
