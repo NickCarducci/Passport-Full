@@ -820,13 +820,19 @@ export default class App extends React.Component {
               <h2>How We Use Your Information</h2>
               <p>We use the collected information for the following purposes:</p>
               <ul>
-                <li><strong>Authentication:</strong> Verify your student identity using Microsoft OAuth</li>
-                <li><strong>Event Check-ins:</strong> Record attendance when you scan QR codes at events</li>
-                <li><strong>Prize Distribution:</strong> Determine winners and mail gift cards to recipients</li>
-                <li><strong>Leaderboard Display:</strong> Show real-time rankings of top participants</li>
-                <li><strong>Analytics:</strong> Generate anonymized metrics for event performance and planning</li>
-                <li><strong>Fraud Prevention:</strong> Detect and prevent duplicate check-ins and system manipulation</li>
+                <li><strong>Account Management:</strong> Authenticate users, manage profiles, and process account deletion requests (uses email and student ID)</li>
+                <li><strong>Event Check-ins:</strong> Record attendance when you scan QR codes at events (uses student ID and attendance timestamps)</li>
+                <li><strong>Prize Distribution:</strong> Determine winners and mail gift cards to recipients (uses name, student ID, email, mailing address)</li>
+                <li><strong>Leaderboard Display:</strong> Show real-time rankings of top participants (uses optional display name or "Anonymous")</li>
+                <li><strong>Fraud Prevention:</strong> Detect and prevent duplicate check-ins and system manipulation (uses student ID and attendance patterns)</li>
+                <li><strong>Analytics:</strong> Generate anonymized, aggregated attendance metrics for event performance and planning (does not use personal identifiers)</li>
               </ul>
+              <p style={{ fontSize: "0.9rem", marginTop: "10px", opacity: 0.85 }}>
+                <strong>Data Usage Summary:</strong> Account management, fraud prevention, and prize distribution require personal
+                identifiers (email, student ID, mailing address) to function properly. Analytics uses only app activity data
+                (attendance records) and does not access personal identifiers. All analytics data is aggregated and anonymized
+                (e.g., "50 students attended Event X") before being shared with the University for event planning.
+              </p>
 
               <h2>Data Storage and Security</h2>
               <p>
