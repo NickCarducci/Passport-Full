@@ -393,7 +393,255 @@ export default class App extends React.Component {
     const rankDisplay = rank >= 0 ? rank + 1 : "—";
     return (
       <div className="admin-root">
-        {this.props.pathname === "/privacy" ? (
+        {this.props.pathname === "/terms" ? (
+          <div className="privacy-policy-page">
+            <div className="privacy-header">
+              <h1>Terms of Service</h1>
+              <button
+                className="btn btn-primary"
+                onClick={() => this.props.navigate("/")}
+              >
+                ← Back to App
+              </button>
+            </div>
+            <div className="privacy-content">
+              <p><strong>Last Updated:</strong> February 2026</p>
+
+              <h2>Overview</h2>
+              <p>
+                By using the Monmouth University Passport application, you agree to these Terms of Service
+                and all related policies governing the app and Student Scholarship Week attendance tracking.
+              </p>
+
+              <h2>Applicable Policies</h2>
+              <p>Use of this app is governed by the following policies:</p>
+              <ul>
+                <li>
+                  <strong
+                    onClick={() => this.props.navigate("/privacy")}
+                    style={{ cursor: "pointer", color: "var(--primary)", textDecoration: "underline" }}
+                  >
+                    Privacy Policy
+                  </strong> - How we collect, use, and protect your data
+                </li>
+                <li>
+                  <strong
+                    onClick={() => this.props.navigate("/rules")}
+                    style={{ cursor: "pointer", color: "var(--primary)", textDecoration: "underline" }}
+                  >
+                    Official Rules
+                  </strong> - Contest rules for Student Scholarship Week prizes
+                </li>
+              </ul>
+
+              <h2>Acceptable Use</h2>
+              <p>You agree to:</p>
+              <ul>
+                <li>Use your own Monmouth University credentials only</li>
+                <li>Check in only at events you physically attend</li>
+                <li>Not share, transfer, or sell your account</li>
+                <li>Not attempt to manipulate attendance records or rankings</li>
+                <li>Not interfere with the app's security measures</li>
+              </ul>
+
+              <h2>Account Authentication</h2>
+              <p>
+                Access requires valid Monmouth University student credentials via Microsoft OAuth.
+                The university may revoke access for policy violations or upon graduation/withdrawal.
+              </p>
+
+              <h2>Attendance Verification</h2>
+              <p>
+                Event attendance is recorded via QR code scanning with one-time verification codes.
+                Fraudulent check-ins may result in disqualification from prizes and potential
+                academic integrity proceedings.
+              </p>
+
+              <h2>No Warranty</h2>
+              <p>
+                The app is provided "as is" without warranties. We do not guarantee uninterrupted
+                access, error-free operation, or that the app will meet your specific needs.
+              </p>
+
+              <h2>Limitation of Liability</h2>
+              <p>
+                Monmouth University is not liable for technical issues, lost data, or inability
+                to record attendance due to app malfunction. Prize eligibility may be affected
+                if technical issues prevent attendance verification.
+              </p>
+
+              <h2>Changes to Terms</h2>
+              <p>
+                We may update these terms at any time. Continued use after changes constitutes
+                acceptance of modified terms.
+              </p>
+
+              <h2>Contact</h2>
+              <p>
+                Questions about these terms should be directed to Monmouth University
+                Office of the Provost or IT Services.
+              </p>
+            </div>
+          </div>
+        ) : this.props.pathname === "/rules" ? (
+          <div className="privacy-policy-page">
+            <div className="privacy-header">
+              <h1>Official Rules</h1>
+              <button
+                className="btn btn-primary"
+                onClick={() => this.props.navigate("/")}
+              >
+                ← Back to App
+              </button>
+            </div>
+            <div className="privacy-content">
+              <p><strong>Last Updated:</strong> February 2026</p>
+              <p><strong>Student Scholarship Week Attendance Recognition Program</strong></p>
+
+              <h2>1. Sponsor</h2>
+              <p>
+                This attendance recognition program is sponsored by Monmouth University,
+                400 Cedar Avenue, West Long Branch, NJ 07764, through the Office of the Provost.
+              </p>
+
+              <h2>2. Eligibility</h2>
+              <p>Open to currently enrolled Monmouth University students only. Participants must:</p>
+              <ul>
+                <li>Have active Monmouth University student credentials</li>
+                <li>Be enrolled during the Student Scholarship Week period</li>
+                <li>Be at least 18 years old, or have parental consent if under 18</li>
+                <li>Comply with university policies and academic integrity standards</li>
+              </ul>
+              <p>
+                University employees, faculty, staff, and immediate family members are eligible
+                to participate but may be ineligible for certain prize categories at the
+                university's discretion.
+              </p>
+
+              <h2>3. Program Period</h2>
+              <p>
+                The program runs during the annual Student Scholarship Week (typically in April).
+                Specific dates are announced each academic year. Only events attended during the
+                designated week are eligible for recognition.
+              </p>
+
+              <h2>4. How to Participate</h2>
+              <p>No purchase necessary. To participate:</p>
+              <ul>
+                <li>Download the Monmouth University Passport app</li>
+                <li>Sign in with your Monmouth University credentials</li>
+                <li>Attend Student Scholarship Week events</li>
+                <li>Scan the QR code displayed at each event to record attendance</li>
+                <li>Each successful scan generates a one-time verification code to prevent duplicate entries</li>
+              </ul>
+
+              <h2>5. Winner Determination</h2>
+              <p>
+                Winners are determined by total verified event attendance during Student Scholarship Week.
+                The app maintains a real-time leaderboard showing participant rankings.
+              </p>
+              <p>
+                The number of prize recipients is determined by the university each year based on
+                participation levels and available resources. Typically, top attendees (highest
+                attendance counts) receive recognition.
+              </p>
+              <p>
+                In the event of tied attendance counts, the university may award prizes to all
+                tied participants or use timestamp of final event attendance as a tiebreaker.
+              </p>
+
+              <h2>6. Prizes</h2>
+              <p>
+                Prizes typically consist of gift cards (e.g., Dunkin', campus bookstore, or similar vendors)
+                with approximate retail value of $5-$25 per card. Specific prizes and quantities are
+                determined annually and announced at the start of Student Scholarship Week.
+              </p>
+              <p><strong>Prize Fulfillment:</strong></p>
+              <ul>
+                <li>Gift cards are purchased prior to the start of Student Scholarship Week</li>
+                <li>Winners are verified after the program period concludes (approximately 1 month review period)</li>
+                <li>Prizes are mailed to winners' registered university addresses or distributed via campus mail</li>
+                <li>Shipping delays may occur; typical delivery is 4-8 weeks after Student Scholarship Week ends</li>
+                <li>No cash substitutions or prize transfers</li>
+                <li>Prizes are awarded "as is" with no warranty</li>
+              </ul>
+              <p>
+                Approximate total prize pool value varies by year. Odds of winning depend on total
+                participants and individual attendance levels. Based on historical participation
+                (estimated 100-500 active users per year), odds range from approximately 1:10 to 1:50.
+              </p>
+
+              <h2>7. Winner Notification</h2>
+              <p>
+                Winners will be notified via their Monmouth University email address within
+                30 days of Student Scholarship Week conclusion. Winners must respond within
+                14 days to claim prizes. Unclaimed prizes may be forfeited.
+              </p>
+
+              <h2>8. Verification and Anti-Fraud Measures</h2>
+              <p>
+                All attendance records are subject to verification. The app uses one-time verification
+                codes to prevent fraudulent check-ins. The university reserves the right to:
+              </p>
+              <ul>
+                <li>Audit attendance records for accuracy</li>
+                <li>Disqualify participants who violate academic integrity policies</li>
+                <li>Disqualify participants who attempt to manipulate the system</li>
+                <li>Investigate suspicious attendance patterns</li>
+                <li>Require additional verification for prize recipients</li>
+              </ul>
+              <p>
+                Fraudulent check-ins or attempts to circumvent security measures may result in
+                disqualification and potential academic integrity proceedings.
+              </p>
+
+              <h2>9. Taxes</h2>
+              <p>
+                Winners are responsible for any applicable federal, state, or local taxes.
+                Prize values are generally below IRS reporting thresholds, but winners should
+                consult tax professionals for individual circumstances.
+              </p>
+
+              <h2>10. Privacy</h2>
+              <p>
+                Participant information is collected and used according to our{" "}
+                <strong
+                  onClick={() => this.props.navigate("/privacy")}
+                  style={{ cursor: "pointer", color: "var(--primary)", textDecoration: "underline" }}
+                >
+                  Privacy Policy
+                </strong>. By participating, you consent to the collection and use of your data as described.
+              </p>
+
+              <h2>11. Publicity</h2>
+              <p>
+                Winners may be recognized publicly (e.g., in university communications, on
+                leaderboards). By participating, you consent to such recognition without
+                additional compensation.
+              </p>
+
+              <h2>12. General Conditions</h2>
+              <ul>
+                <li>The university reserves the right to modify or cancel the program at any time</li>
+                <li>The university is not responsible for technical failures, lost attendance records, or app malfunctions</li>
+                <li>Decisions regarding winner selection and eligibility are final</li>
+                <li>Void where prohibited by law</li>
+              </ul>
+
+              <h2>13. Disputes</h2>
+              <p>
+                Any disputes arising from this program shall be governed by New Jersey law
+                and resolved through the university's standard grievance procedures.
+              </p>
+
+              <h2>14. Questions</h2>
+              <p>
+                For questions about these rules, contact the Monmouth University Office of
+                the Provost or visit the Student Scholarship Week information page.
+              </p>
+            </div>
+          </div>
+        ) : this.props.pathname === "/privacy" ? (
           <div className="privacy-policy-page">
             <div className="privacy-header">
               <h1>Privacy Policy</h1>
@@ -641,6 +889,36 @@ export default class App extends React.Component {
                 </div>
 
                 <div
+                  style={{
+                    marginTop: "20px",
+                    fontSize: "0.75rem",
+                    display: "flex",
+                    gap: "15px",
+                    justifyContent: "center",
+                    flexWrap: "wrap"
+                  }}
+                >
+                  <span
+                    onClick={() => this.props.navigate("/terms")}
+                    style={{ color: "#605e5c", cursor: "pointer", textDecoration: "underline" }}
+                  >
+                    Terms
+                  </span>
+                  <span
+                    onClick={() => this.props.navigate("/rules")}
+                    style={{ color: "#605e5c", cursor: "pointer", textDecoration: "underline" }}
+                  >
+                    Rules
+                  </span>
+                  <span
+                    onClick={() => this.props.navigate("/privacy")}
+                    style={{ color: "#605e5c", cursor: "pointer", textDecoration: "underline" }}
+                  >
+                    Privacy
+                  </span>
+                </div>
+
+                <div
                   onClick={() =>
                     this.setState({
                       auth: { email: "preview@monmouth.edu" },
@@ -648,7 +926,7 @@ export default class App extends React.Component {
                     })
                   }
                   style={{
-                    marginTop: "30px",
+                    marginTop: "20px",
                     color: "#0078d4",
                     cursor: "pointer",
                     fontSize: "0.8rem"
@@ -1119,8 +1397,14 @@ export default class App extends React.Component {
                   >
                     Export CSV
                   </CSVLink>
+                  <div onClick={() => this.props.navigate("/terms")}>
+                    Terms
+                  </div>
+                  <div onClick={() => this.props.navigate("/rules")}>
+                    Rules
+                  </div>
                   <div onClick={() => this.props.navigate("/privacy")}>
-                    Privacy Policy
+                    Privacy
                   </div>
                   <a href="#">App Store</a>
                   <a href="#">Play Store</a>
