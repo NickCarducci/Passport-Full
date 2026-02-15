@@ -98,15 +98,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
     }
-    /*func application(_ application: UIApplication, open url: URL,
-                     options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-
-      if Auth.auth().canHandle(url) {
-          print("Can handle url")
-          return true
-      }
-      return false
-    }*/
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         // Called when a new scene session is being created.
         // Use this method to select a configuration to create the new scene with.

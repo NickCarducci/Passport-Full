@@ -16,6 +16,20 @@
 		A33258942C9127860061371F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A33258932C9127860061371F /* FirebaseFirestore */; };
 		A3B95C642D8EF65900AD0FE9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A3B95C632D8EF65900AD0FE9 /* GoogleService-Info.plist */; };
 		A3C0DDC12C948E9A0092DC82 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = A3C0DDC02C948E9A0092DC82 /* FirebaseMessaging */; };
+		B10C0DE1C0DE000000000201 /* DateUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000101 /* DateUtils.swift */; };
+		B10C0DE1C0DE000000000202 /* UIScreen+Size.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000102 /* UIScreen+Size.swift */; };
+		B10C0DE1C0DE000000000203 /* ScrollPositionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000103 /* ScrollPositionTracker.swift */; };
+		B10C0DE1C0DE000000000204 /* QuietButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000104 /* QuietButton.swift */; };
+		B10C0DE1C0DE000000000205 /* GestureStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000105 /* GestureStateManager.swift */; };
+		B10C0DE1C0DE000000000206 /* AuthUIPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000106 /* AuthUIPresenter.swift */; };
+		B10C0DE1C0DE000000000207 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000107 /* Message.swift */; };
+		B10C0DE1C0DE000000000208 /* CodeResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000108 /* CodeResponse.swift */; };
+		B10C0DE1C0DE000000000209 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000109 /* Event.swift */; };
+		B10C0DE1C0DE00000000020A /* Leader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE00000000010A /* Leader.swift */; };
+		B10C0DE1C0DE00000000020B /* UnderlayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE00000000010B /* UnderlayMode.swift */; };
+		B10C0DE1C0DE00000000020C /* EventView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE00000000010C /* EventView.swift */; };
+		B10C0DE1C0DE00000000020D /* LeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE00000000010D /* LeaderView.swift */; };
+		B10C0DE1C0DE00000000020E /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE00000000010E /* EventDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +41,20 @@
 		A32A202A2C8C8D3B0059417C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A38850E42C8D00F300CCBF22 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A3B95C632D8EF65900AD0FE9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		B10C0DE1C0DE000000000101 /* DateUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateUtils.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE000000000102 /* UIScreen+Size.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIScreen+Size.swift"; sourceTree = "<group>"; };
+		B10C0DE1C0DE000000000103 /* ScrollPositionTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollPositionTracker.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE000000000104 /* QuietButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuietButton.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE000000000105 /* GestureStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureStateManager.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE000000000106 /* AuthUIPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthUIPresenter.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE000000000107 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE000000000108 /* CodeResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeResponse.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE000000000109 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE00000000010A /* Leader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Leader.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE00000000010B /* UnderlayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnderlayMode.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE00000000010C /* EventView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventView.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE00000000010D /* LeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderView.swift; sourceTree = "<group>"; };
+		B10C0DE1C0DE00000000010E /* EventDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +92,11 @@
 		A32A20212C8C8D390059417C /* Passport */ = {
 			isa = PBXGroup;
 			children = (
+				B10C0DE1C0DE000000000012 /* Components */,
+				B10C0DE1C0DE000000000010 /* Models */,
+				B10C0DE1C0DE000000000014 /* Services */,
+				B10C0DE1C0DE000000000013 /* Utilities */,
+				B10C0DE1C0DE000000000011 /* Views */,
 				A3B95C632D8EF65900AD0FE9 /* GoogleService-Info.plist */,
 				A38850E42C8D00F300CCBF22 /* Info.plist */,
 				A32A20222C8C8D390059417C /* PassportApp.swift */,
@@ -73,6 +106,55 @@
 				A32A20292C8C8D3B0059417C /* Preview Content */,
 			);
 			path = Passport;
+			sourceTree = "<group>";
+		};
+		B10C0DE1C0DE000000000010 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B10C0DE1C0DE000000000108 /* CodeResponse.swift */,
+				B10C0DE1C0DE000000000109 /* Event.swift */,
+				B10C0DE1C0DE00000000010A /* Leader.swift */,
+				B10C0DE1C0DE000000000107 /* Message.swift */,
+				B10C0DE1C0DE00000000010B /* UnderlayMode.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		B10C0DE1C0DE000000000011 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B10C0DE1C0DE00000000010E /* EventDetailView.swift */,
+				B10C0DE1C0DE00000000010C /* EventView.swift */,
+				B10C0DE1C0DE00000000010D /* LeaderView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B10C0DE1C0DE000000000012 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				B10C0DE1C0DE000000000104 /* QuietButton.swift */,
+				B10C0DE1C0DE000000000103 /* ScrollPositionTracker.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		B10C0DE1C0DE000000000013 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				B10C0DE1C0DE000000000101 /* DateUtils.swift */,
+				B10C0DE1C0DE000000000102 /* UIScreen+Size.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		B10C0DE1C0DE000000000014 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B10C0DE1C0DE000000000106 /* AuthUIPresenter.swift */,
+				B10C0DE1C0DE000000000105 /* GestureStateManager.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		A32A20292C8C8D3B0059417C /* Preview Content */ = {
@@ -171,6 +253,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B10C0DE1C0DE000000000201 /* DateUtils.swift in Sources */,
+				B10C0DE1C0DE000000000202 /* UIScreen+Size.swift in Sources */,
+				B10C0DE1C0DE000000000203 /* ScrollPositionTracker.swift in Sources */,
+				B10C0DE1C0DE000000000204 /* QuietButton.swift in Sources */,
+				B10C0DE1C0DE000000000205 /* GestureStateManager.swift in Sources */,
+				B10C0DE1C0DE000000000206 /* AuthUIPresenter.swift in Sources */,
+				B10C0DE1C0DE000000000207 /* Message.swift in Sources */,
+				B10C0DE1C0DE000000000208 /* CodeResponse.swift in Sources */,
+				B10C0DE1C0DE000000000209 /* Event.swift in Sources */,
+				B10C0DE1C0DE00000000020A /* Leader.swift in Sources */,
+				B10C0DE1C0DE00000000020B /* UnderlayMode.swift in Sources */,
+				B10C0DE1C0DE00000000020C /* EventView.swift in Sources */,
+				B10C0DE1C0DE00000000020D /* LeaderView.swift in Sources */,
+				B10C0DE1C0DE00000000020E /* EventDetailView.swift in Sources */,
 				A32A20252C8C8D390059417C /* ContentView.swift in Sources */,
 				A32A20232C8C8D390059417C /* PassportApp.swift in Sources */,
 			);

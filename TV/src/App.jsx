@@ -145,6 +145,24 @@ export default class App extends React.Component {
       });
   };
 
+  isValidHttpsUrl = (url) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "https:" && !!parsed.host;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  openEventDetails = (event) => {
+    const link = (event?.descriptionLink || "").trim();
+    if (link && this.isValidHttpsUrl(link)) {
+      window.open(link, "_blank", "noopener,noreferrer");
+    } else if (event?.id) {
+      this.props.navigate("/event/" + event.id);
+    }
+  };
+
   handleAttend = async (eventId, existingCode) => {
     const { user } = this.state;
     if (!eventId) {
@@ -1260,7 +1278,19 @@ export default class App extends React.Component {
                     {this.state.events
                       .sort((a, b) => new Date(a.date) - new Date(b.date))
                       .map((x) => (
-                        <div key={x.id} className="itinerary-item">
+                        <div
+                          key={x.id}
+                          className="itinerary-item"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => this.openEventDetails(x)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              this.openEventDetails(x);
+                            }
+                          }}
+                          style={{ cursor: "pointer" }}
+                        >
                           <div className="itinerary-date">
                             {x.date
                               ? new Date(x.date).toLocaleDateString(undefined, {

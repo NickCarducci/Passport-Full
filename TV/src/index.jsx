@@ -1,107 +1,26 @@
 import React /*, { useEffect, useRef }*/ from "react";
 import { UAParser } from "ua-parser-js";
-//import { createPortal } from "react-dom";
-//commie.dev/police we are the bootlickers
-//saver (no lending) commie () libertarian (bank)
 import { createRoot } from "react-dom/client";
-//It's a simple question: Do antibodies prevent atherosclerotic plaque?
-//trump tariffs imported material
-//ban employee benefit exemptions
-//tiny fusion reactor "battery" magnate.company
 import {
   Route,
   BrowserRouter,
   Routes,
   useLocation,
   useNavigate,
-  //ways and means troubled by barter
-  //lmao yes we do enjoy drugs
-  //"you bet follor path to liberty ..." MI Patrick Holland
-  //sounds like a class action response (burau)
   useParams
 } from "react-router-dom";
-//default reconciliation  budgeting
-//what about discounts to potentially known customers? ("conscious[?] exploration")
-//Isn't the U.S. House of Representatives ways and Means Committee troubled by barter with scales and marks to local storage and transportation markets?
-
-import {
-  browserSessionPersistence,
-  getAuth,
-  setPersistence,
-  signOut
-} from "firebase/auth";
-//import { CSSTransition, TransitionGroup } from "react-transition-group";
-//"I'm a big fan of fans" - maybe Nietzsche good is less time to outcome productivity and real non-inflationary GDP?
-//more unemployment
-//Shouldn't growth come from a substitute in an efficient economy?
-//import Routs from "./Routs"; studpidunusedrouter.js
 import InitApp from "./App";
 //import Filament from "./ifilament.js";
 import "./styles.css";
 
-//checking bank runs, we all agree on, smoov
-//shine shoe
-
-//we all agree checking is deed
-//we all agree to cut deficit at least. non voters reconcile, otherwise
-//crowdfundingfortaxes.quora.com
-//half budget deficit is no mistake
-//they are all cops, even the teachers
-//12.1.5 kids work at 9!
-//Invest in yourself vau.money
-//keynes want broke entrepreneur subs
-//maybe socialism is just sick days. I won't want the work in the linguisted to be exploited
-//Unfortunately I believe in electionic funds as revenuedata.doi.gov
-//I am too good to kill
-//I ate CFR 11 and 12
-//NFL every year (goprovider.xyz)
-//cut the deficit, reconcile, and bankk
-//I want to lock down, but the science isn't there
-//I want to lock down, but the physiological evolutionary science is cannibalistic
-//plumbers who treat bill like tip are Sunchamp
-//workers are drug tested
-//sick days determined
-//I can get a FedCash atm for you and you and you
-//I choose tech over profit everyday!
-//keynes want broke entrepreneur subs
-//I choose tech over profit every day!
-//scaler airlines
-//do they send luggage separate
-
-//security or coverage
-//state government bastards
-//determined sick days
-//substitute
-
-//How do microeconomists substitute escrow for prevention of loss and unknown dangers for safety?
-
-//okie dokie. escrow prevent not cover loss  bitch boy
-
-//it was in the, read the eula
-
-//buttgieg took my job
-
-//producer aussie index
-
-//sponsor me fags 12.1.5
-
-//What laws would have to
-
-//test
-//antithesis is controlled observation or vivo placebo-confirmable null-test across time
 class Authentication extends React.Component {
   constructor(props) {
-    super(props); //"everyone in order to be for the people that use it. who decides?"
+    super(props);
     var parser = new UAParser();
     const name = parser.getBrowser().name;
     const device = parser.getDevice().type;
-    const width =
-      /* name.includes("Safari")
-      ? window.screen.availWidth
-      : */ window.innerWidth;
-    /*const height = name.includes("Safari")
-      ? window.screen.availHeight
-      : window.innerHeight;*/
+    const width = window.innerWidth;
+
     this.state = {
       device,
       lastWidth: width,
@@ -115,7 +34,6 @@ class Authentication extends React.Component {
       auth: undefined,
       user: undefined,
       meAuth: {},
-      //storedAuth: undefined,
       storableAuth: []
     };
     this.anarchy = React.createRef();
@@ -136,8 +54,8 @@ class Authentication extends React.Component {
               scrolling: false
             });
           }, 2000);
-        } //will LP go anti-bank or is it Saver party grounds
-      ); //can I get a 1 for third party donee beneficiary
+        }
+      );
     }
   };
   refresh = (event, first) => {
@@ -148,7 +66,7 @@ class Authentication extends React.Component {
       const update = () =>
         this.setState({
           lastWidth: width,
-          width: width || 1, // Ensure width is never 0 to prevent null render
+          width: width || 1,
           availableHeight: this.state.ios
             ? window.screen.availHeight - 20
             : window.innerHeight
@@ -199,11 +117,6 @@ class Authentication extends React.Component {
       document.referrer.startsWith("android-app://")
     ) {
       console.log("PWA");
-      /*window.alert(
-        `wow, thanks for adding us to your homescreen, please re-add ` +
-          `if any bugs pop up and email nick@thumbprint.us with any complaints! ` +
-          `STAGE: Work-In-Progress Beta (a.k.a. Alpha)`
-      );*/
     } else {
       const ios = () => {
         return (
@@ -238,8 +151,8 @@ class Authentication extends React.Component {
           console.log("PWA query on iOS")
         );
     }
-  }; //cut progressive truncated wholesale tax deficit
-  //cut tax deficit
+  };
+
   render() {
     const { pathname, location, navigate } = this.props,
       sp =
@@ -302,4 +215,3 @@ createRoot(document.getElementById("root")).render(
     </Routes>
   </BrowserRouter>
 );
-//don't use the stupidunusedrouter.js
