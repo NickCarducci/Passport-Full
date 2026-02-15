@@ -16,10 +16,9 @@ const path = require("path"),
     return origin;
   },
   allowOriginType = (origin, req, res) => {
-    res.setHeader(
-      "Access-Control-Allow-Origin",
-      req.path.includes("/attend") ? "*" : origin
-    );
+    // Handle undefined origin from non-browser clients (e.g., Android app)
+    const allowOrigin = req.path.includes("/attend") || !origin ? "*" : origin;
+    res.setHeader("Access-Control-Allow-Origin", allowOrigin);
     res.setHeader("Access-Control-Allow-Methods", ["POST", "OPTIONS", "GET"]);
     res.setHeader("Access-Control-Allow-Headers", [
       "Content-Type",
@@ -245,12 +244,27 @@ issue
       return res.status(401).send({ statusCode: 401, message: "No email in token" });
     }
 
+    // Validate eventId input
     const eventId = req.body.eventId;
-    const evenT = await db.collection("events").doc(eventId).get();
+    if (typeof eventId !== "string" || !eventId.trim()) {
+      return res.status(400).send({ statusCode: 400, message: "eventId must be a non-empty string" });
+    }
+    if (eventId.length > 200 || !/^[a-zA-Z0-9_-]+$/.test(eventId)) {
+      return res.status(400).send({ statusCode: 400, message: "eventId has invalid format" });
+    }
+
+    try {
+      const evenT = await db.collection("events").doc(eventId).get();
     if (!evenT.exists) {
       return res.send({ statusCode, statusText, message: eventId + " event doesn't exist" });
     }
     const event = evenT.data();
+
+    // Validate event data structure
+    if (!Array.isArray(event.attendees)) {
+      console.error("Event attendees is not an array:", eventId, event);
+      return res.status(500).send({ statusCode: 500, message: "Invalid event data structure" });
+    }
 
     // Already attended — no code generated
     if (event.attendees.includes(studentId)) {
@@ -264,14 +278,18 @@ issue
       return res.send({ statusCode, statusText, code: existing.data().code });
     }
 
-    // Generate a new one-time code
-    const code = crypto.randomBytes(4).toString("hex");
-    await db.collection("attendanceCodes").doc(codeDocId).set({
-      code,
-      studentId,
-      eventId
-    });
-    res.send({ statusCode, statusText, code });
+      // Generate a new one-time code
+      const code = crypto.randomBytes(4).toString("hex");
+      await db.collection("attendanceCodes").doc(codeDocId).set({
+        code,
+        studentId,
+        eventId
+      });
+      res.send({ statusCode, statusText, code });
+    } catch (err) {
+      console.error("Database error in /code:", err);
+      return res.status(500).send({ statusCode: 500, message: "Database error: " + err.message });
+    }
   })
   .post("/attend", async (req, res) => {
     if (allowOriginType(req.headers.origin, req, res))
@@ -297,11 +315,36 @@ issue
       return res.status(401).send({ statusCode: 401, message: "No email in token" });
     }
 
-    // Validate one-time code
+    // Validate inputs
     const eventId = req.body.eventId;
-    const codeDocId = studentId + "_" + eventId;
-    const codeDoc = await db.collection("attendanceCodes").doc(codeDocId).get();
-    if (!codeDoc.exists || codeDoc.data().code !== req.body.code) {
+    const code = req.body.code;
+    const fullName = req.body.fullName;
+    const address = req.body.address;
+
+    if (typeof eventId !== "string" || !eventId.trim()) {
+      return res.status(400).send({ statusCode: 400, message: "eventId must be a non-empty string" });
+    }
+    if (eventId.length > 200 || !/^[a-zA-Z0-9_-]+$/.test(eventId)) {
+      return res.status(400).send({ statusCode: 400, message: "eventId has invalid format" });
+    }
+    if (typeof code !== "string" || !code.trim()) {
+      return res.status(400).send({ statusCode: 400, message: "code must be a non-empty string" });
+    }
+    if (!/^[a-zA-Z0-9]+$/.test(code)) {
+      return res.status(400).send({ statusCode: 400, message: "code has invalid format" });
+    }
+    if (fullName !== undefined && typeof fullName !== "string") {
+      return res.status(400).send({ statusCode: 400, message: "fullName must be a string" });
+    }
+    if (address !== undefined && typeof address !== "string") {
+      return res.status(400).send({ statusCode: 400, message: "address must be a string" });
+    }
+
+    try {
+      // Validate one-time code
+      const codeDocId = studentId + "_" + eventId;
+      const codeDoc = await db.collection("attendanceCodes").doc(codeDocId).get();
+    if (!codeDoc.exists || codeDoc.data().code !== code) {
       return res.status(403).send({ statusCode: 403, message: "Invalid or missing attendance code" });
     }
 
@@ -310,6 +353,12 @@ issue
       return res.send({ statusCode, statusText, message: eventId + " event doesn't exist", title: "" });
     }
     const event = evenT.data();
+
+    // Validate event data structure
+    if (!Array.isArray(event.attendees)) {
+      console.error("Event attendees is not an array:", eventId, event);
+      return res.status(500).send({ statusCode: 500, message: "Invalid event data structure" });
+    }
 
     if (event.attendees.includes(studentId)) {
       // Clean up the code since they already attended
@@ -320,17 +369,21 @@ issue
     await db.collection("events").doc(eventId).update({
       attendees: FieldValue.arrayUnion(studentId)
     });
-    await db.collection("leaders").doc(studentId).set(
-      {
-        eventsAttended: FieldValue.increment(1),
-        address: req.body.address || "",
-        fullName: req.body.fullName || ""
-      },
-      { merge: true }
-    );
-    // Delete the one-time code after successful attendance
-    await db.collection("attendanceCodes").doc(codeDocId).delete();
-    res.send({ statusCode, statusText, message: "attended", title: event.title });
+      await db.collection("leaders").doc(studentId).set(
+        {
+          eventsAttended: FieldValue.increment(1),
+          address: address || "",
+          fullName: fullName || ""
+        },
+        { merge: true }
+      );
+      // Delete the one-time code after successful attendance
+      await db.collection("attendanceCodes").doc(codeDocId).delete();
+      res.send({ statusCode, statusText, message: "attended", title: event.title });
+    } catch (err) {
+      console.error("Database error in /attend:", err);
+      return res.status(500).send({ statusCode: 500, message: "Database error: " + err.message });
+    }
   });
 //https://stackoverflow.com/questions/31928417/chaining-multiple-pieces-of-middleware-for-specific-route-in-expressjs
 app.use("/api", nonbody, issue); //methods on express.Router() or use a scoped instance
@@ -350,6 +403,17 @@ function exitHandler(exited, exitCode) {
 process.on("uncaughtException", exitHandler.bind(null, { mounted: true }));
 process.on("exit", exitHandler.bind(null, { clean: true }));
 function errorHandler(err, req, res, next) {
-  console.log("Oops", err);
+  console.error("Error handler caught:", err);
+
+  // Don't try to send response if headers already sent
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  res.status(500).send({
+    statusCode: 500,
+    statusText: "Internal Server Error",
+    message: err.message || "An unexpected error occurred"
+  });
 }
 app.use(errorHandler);
