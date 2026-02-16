@@ -1875,16 +1875,28 @@ export default class App extends React.Component {
                                 const match = url.match(/\/event\/([^?]+)/);
                               if (match) {
                                 const frame = this.getFrameData(el);
-                                if (!this.passesWhiteBorderCheck(frame, box)) {
-                                  this.setScanHint(
-                                    "Place the QR on white paper under bright light."
-                                  );
-                                  return;
-                                }
-                                if (!this.passesTextureCheck(frame, box)) {
-                                  this.setScanHint(
-                                    "Printed QR texture missing. Use the official printout."
-                                  );
+                                const whiteOk = this.passesWhiteBorderCheck(
+                                  frame,
+                                  box
+                                );
+                                const textureOk = this.passesTextureCheck(
+                                  frame,
+                                  box
+                                );
+                                if (!whiteOk || !textureOk) {
+                                  if (!whiteOk && !textureOk) {
+                                    this.setScanHint(
+                                      "Needs white paper and the official printout."
+                                    );
+                                  } else if (!whiteOk) {
+                                    this.setScanHint(
+                                      "Place the QR on white paper under bright light."
+                                    );
+                                  } else {
+                                    this.setScanHint(
+                                      "Printed QR texture missing. Use the official printout."
+                                    );
+                                  }
                                   return;
                                 }
                                 stream.getTracks().forEach((t) => t.stop());
