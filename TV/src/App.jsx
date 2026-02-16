@@ -218,7 +218,7 @@ export default class App extends React.Component {
 
   createTexturedQrDataUrl = async (text) => {
     const size = 1024;
-    const textureMin = 235;
+    const textureMin = 210;
     const textureMax = 255;
     const qrCanvas = document.createElement("canvas");
     await QRCode.toCanvas(qrCanvas, text, {
@@ -317,7 +317,7 @@ export default class App extends React.Component {
 
     const boxW = maxX - minX;
     const boxH = maxY - minY;
-    const inset = Math.max(4, Math.floor(Math.min(boxW, boxH) * 0.06));
+    const inset = Math.max(6, Math.floor(Math.min(boxW, boxH) * 0.08));
     const startX = minX + inset;
     const endX = maxX - inset;
     const startY = minY + inset;
@@ -327,6 +327,7 @@ export default class App extends React.Component {
     let count = 0;
     let mean = 0;
     let m2 = 0;
+    let deviation = 0;
     const step = 2;
     for (let y = startY; y <= endY; y += step) {
       for (let x = startX; x <= endX; x += step) {
@@ -335,16 +336,31 @@ export default class App extends React.Component {
         const g = data[idx + 1];
         const b = data[idx + 2];
         const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        if (luma < 190) continue;
+        if (luma < 200) continue;
+        const rightIdx = (y * width + Math.min(x + 1, width - 1)) * 4;
+        const downIdx =
+          (Math.min(y + 1, height - 1) * width + x) * 4;
+        const lumaRight =
+          0.2126 * data[rightIdx] +
+          0.7152 * data[rightIdx + 1] +
+          0.0722 * data[rightIdx + 2];
+        const lumaDown =
+          0.2126 * data[downIdx] +
+          0.7152 * data[downIdx + 1] +
+          0.0722 * data[downIdx + 2];
+        const gradient = Math.abs(luma - lumaRight) + Math.abs(luma - lumaDown);
+        if (gradient > 12) continue;
         count++;
         const delta = luma - mean;
         mean += delta / count;
         m2 += delta * (luma - mean);
+        deviation += Math.abs(luma - (lumaRight + lumaDown) / 2);
       }
     }
-    if (count < 200) return false;
+    if (count < 160) return false;
     const variance = m2 / Math.max(1, count - 1);
-    return variance >= 18;
+    const avgDeviation = deviation / count;
+    return variance >= 14 && avgDeviation >= 4;
   };
 
 
