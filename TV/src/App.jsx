@@ -81,6 +81,8 @@ export default class App extends React.Component {
     this.ra = React.createRef();
     this.pa = React.createRef();
     this.gui = React.createRef();
+    this._scanCanvas = null;
+    this._scanHintTimeout = null;
   }
   handleChange = (e) => {
     var name = e.target.id;
@@ -101,6 +103,7 @@ export default class App extends React.Component {
   };
   componentWillUnmount = () => {
     this.isMountCanceled = true;
+    if (this._scanHintTimeout) clearTimeout(this._scanHintTimeout);
   };
 
   // prettier-ignore
@@ -186,35 +189,13 @@ export default class App extends React.Component {
     };
 
     try {
-      let code = existingCode;
-
-      if (!code) {
-        // Step 1: Generate one-time code
-        const codeRes = await fetch("/api/code", {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ eventId })
-        }).then((r) => r.json());
-
-        if (codeRes.message === "already attended.") {
-          window.alert("Already attended" + (codeRes.title ? ": " + codeRes.title : ""));
-          this.props.navigate("/");
-          return;
-        }
-        if (!codeRes.code) {
-          window.alert(codeRes.message || "Could not generate attendance code");
-          return;
-        }
-        code = codeRes.code;
-      }
-
-      // Step 2: Attend with code
+      // Attend without one-time code
       const attendRes = await fetch("/api/attend", {
         method: "POST",
         headers,
         body: JSON.stringify({
           eventId,
-          code,
+          ...(existingCode ? { code: existingCode } : {}),
           fullName: user.fullName || "",
           address: user.address || ""
         })
@@ -226,6 +207,146 @@ export default class App extends React.Component {
       window.alert("Attendance failed: " + err.message);
     }
   };
+
+  setScanHint = (message) => {
+    this.setState({ scanHint: message });
+    if (this._scanHintTimeout) clearTimeout(this._scanHintTimeout);
+    this._scanHintTimeout = setTimeout(() => {
+      this.setState({ scanHint: null });
+    }, 2500);
+  };
+
+  createTexturedQrDataUrl = async (text) => {
+    const size = 1024;
+    const textureMin = 235;
+    const textureMax = 255;
+    const qrCanvas = document.createElement("canvas");
+    await QRCode.toCanvas(qrCanvas, text, {
+      width: size,
+      margin: 4,
+      color: {
+        dark: "#000000",
+        light: "rgba(255,255,255,0)"
+      }
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, size, size);
+    const imageData = ctx.getImageData(0, 0, size, size);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const v =
+        textureMin + Math.floor(Math.random() * (textureMax - textureMin + 1));
+      data[i] = v;
+      data[i + 1] = v;
+      data[i + 2] = v;
+      data[i + 3] = 255;
+    }
+    ctx.putImageData(imageData, 0, 0);
+    ctx.drawImage(qrCanvas, 0, 0);
+    return canvas.toDataURL("image/png");
+  };
+
+  getFrameData = (videoEl) => {
+    if (!videoEl.videoWidth || !videoEl.videoHeight) return null;
+    if (!this._scanCanvas) {
+      this._scanCanvas = document.createElement("canvas");
+    }
+    const canvas = this._scanCanvas;
+    const width = videoEl.videoWidth;
+    const height = videoEl.videoHeight;
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(videoEl, 0, 0, width, height);
+    const imageData = ctx.getImageData(0, 0, width, height);
+    return { imageData, width, height };
+  };
+
+  passesWhiteBorderCheck = (frame, box) => {
+    if (!frame || !box) return false;
+    const { imageData, width, height } = frame;
+    const data = imageData.data;
+    const minX = Math.max(0, Math.floor(box.x));
+    const minY = Math.max(0, Math.floor(box.y));
+    const maxX = Math.min(width - 1, Math.floor(box.x + box.width));
+    const maxY = Math.min(height - 1, Math.floor(box.y + box.height));
+    if (maxX <= minX || maxY <= minY) return false;
+
+    const boxW = maxX - minX;
+    const boxH = maxY - minY;
+    const margin = Math.max(6, Math.floor(Math.min(boxW, boxH) * 0.08));
+    const ringMinX = Math.max(0, minX - margin);
+    const ringMinY = Math.max(0, minY - margin);
+    const ringMaxX = Math.min(width - 1, maxX + margin);
+    const ringMaxY = Math.min(height - 1, maxY + margin);
+
+    let whiteCount = 0;
+    let total = 0;
+    const step = 2;
+    for (let y = ringMinY; y <= ringMaxY; y += step) {
+      for (let x = ringMinX; x <= ringMaxX; x += step) {
+        const inBox = x >= minX && x <= maxX && y >= minY && y <= maxY;
+        if (inBox) continue;
+        const idx = (y * width + x) * 4;
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+        const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        total++;
+        if (luma >= 230) whiteCount++;
+      }
+    }
+    if (total === 0) return false;
+    const whiteRatio = whiteCount / total;
+    return whiteRatio >= 0.7;
+  };
+
+  passesTextureCheck = (frame, box) => {
+    if (!frame || !box) return false;
+    const { imageData, width, height } = frame;
+    const data = imageData.data;
+    const minX = Math.max(0, Math.floor(box.x));
+    const minY = Math.max(0, Math.floor(box.y));
+    const maxX = Math.min(width - 1, Math.floor(box.x + box.width));
+    const maxY = Math.min(height - 1, Math.floor(box.y + box.height));
+    if (maxX <= minX || maxY <= minY) return false;
+
+    const boxW = maxX - minX;
+    const boxH = maxY - minY;
+    const inset = Math.max(4, Math.floor(Math.min(boxW, boxH) * 0.06));
+    const startX = minX + inset;
+    const endX = maxX - inset;
+    const startY = minY + inset;
+    const endY = maxY - inset;
+    if (endX <= startX || endY <= startY) return false;
+
+    let count = 0;
+    let mean = 0;
+    let m2 = 0;
+    const step = 2;
+    for (let y = startY; y <= endY; y += step) {
+      for (let x = startX; x <= endX; x += step) {
+        const idx = (y * width + x) * 4;
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+        const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        if (luma < 190) continue;
+        count++;
+        const delta = luma - mean;
+        mean += delta / count;
+        m2 += delta * (luma - mean);
+      }
+    }
+    if (count < 200) return false;
+    const variance = m2 / Math.max(1, count - 1);
+    return variance >= 18;
+  };
+
 
   componentDidMount = () => {
     onAuthStateChanged(
@@ -588,7 +709,7 @@ export default class App extends React.Component {
 
               <h2>Attendance Verification</h2>
               <p>
-                Event attendance is recorded via QR code scanning with one-time verification codes.
+                Event attendance is recorded via QR code scanning.
                 Fraudulent check-ins may result in disqualification from prizes and potential
                 academic integrity proceedings.
               </p>
@@ -672,7 +793,7 @@ export default class App extends React.Component {
                 <li>Sign in with your Monmouth University credentials</li>
                 <li>Attend Student Scholarship Week events</li>
                 <li>Scan the QR code displayed at each event to record attendance</li>
-                <li>Each successful scan generates a one-time verification code to prevent duplicate entries</li>
+                <li>Each successful scan records attendance for the signed-in student</li>
               </ul>
 
               <h2>5. Winner Determination</h2>
@@ -720,7 +841,7 @@ export default class App extends React.Component {
 
               <h2>8. Verification and Anti-Fraud Measures</h2>
               <p>
-                All attendance records are subject to verification. The app uses one-time verification
+                All attendance records are subject to verification.
                 codes to prevent fraudulent check-ins. The university reserves the right to:
               </p>
               <ul>
@@ -1592,8 +1713,16 @@ export default class App extends React.Component {
                                     <td>{x.school}</td>
                                     <td>
                                       <form
-                                        onSubmit={(e) => {
+                                        onSubmit={async (e) => {
                                           e.preventDefault();
+                                          const qrUrl =
+                                            window.location.origin +
+                                            "/event/" +
+                                            x.id;
+                                          const qrDataUrl =
+                                            await this.createTexturedQrDataUrl(
+                                              qrUrl
+                                            );
                                           Font.register({
                                             family: "Roboto",
                                             src: "https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-light-webfont.ttf"
@@ -1631,12 +1760,7 @@ export default class App extends React.Component {
                                                       style={{
                                                         width: "300px"
                                                       }}
-                                                      src={QRCode.toDataURL(
-                                                        window.location
-                                                          .origin +
-                                                          "/event/" +
-                                                          x.id
-                                                      )}
+                                                      src={qrDataUrl}
                                                     />
                                                   </View>
                                                 </Page>
@@ -1731,9 +1855,22 @@ export default class App extends React.Component {
                             el.srcObject = stream;
                             el.play();
 
-                            const onDetected = (url) => {
-                              const match = url.match(/\/event\/([^?]+)/);
+                            const onDetected = (url, box) => {
+                                const match = url.match(/\/event\/([^?]+)/);
                               if (match) {
+                                const frame = this.getFrameData(el);
+                                if (!this.passesWhiteBorderCheck(frame, box)) {
+                                  this.setScanHint(
+                                    "Place the QR on white paper under bright light."
+                                  );
+                                  return;
+                                }
+                                if (!this.passesTextureCheck(frame, box)) {
+                                  this.setScanHint(
+                                    "Printed QR texture missing. Use the official printout."
+                                  );
+                                  return;
+                                }
                                 stream.getTracks().forEach((t) => t.stop());
                                 this._stream = null;
                                 this.setState({ scanning: false });
@@ -1756,8 +1893,18 @@ export default class App extends React.Component {
                                 detector
                                   .detect(el)
                                   .then((codes) => {
-                                    if (codes.length > 0)
-                                      onDetected(codes[0].rawValue);
+                                    if (codes.length > 0) {
+                                      const c = codes[0];
+                                      const box = c.boundingBox
+                                        ? {
+                                            x: c.boundingBox.x,
+                                            y: c.boundingBox.y,
+                                            width: c.boundingBox.width,
+                                            height: c.boundingBox.height
+                                          }
+                                        : null;
+                                      onDetected(c.rawValue, box);
+                                    }
                                     if (this.state.scanning)
                                       requestAnimationFrame(scan);
                                   })
@@ -1793,7 +1940,32 @@ export default class App extends React.Component {
                                     imageData.width,
                                     imageData.height
                                   );
-                                  if (code) onDetected(code.data);
+                                  if (code) {
+                                    const loc = code.location;
+                                    const xs = [
+                                      loc.topLeftCorner.x,
+                                      loc.topRightCorner.x,
+                                      loc.bottomLeftCorner.x,
+                                      loc.bottomRightCorner.x
+                                    ];
+                                    const ys = [
+                                      loc.topLeftCorner.y,
+                                      loc.topRightCorner.y,
+                                      loc.bottomLeftCorner.y,
+                                      loc.bottomRightCorner.y
+                                    ];
+                                    const minX = Math.min(...xs);
+                                    const minY = Math.min(...ys);
+                                    const maxX = Math.max(...xs);
+                                    const maxY = Math.max(...ys);
+                                    const box = {
+                                      x: minX,
+                                      y: minY,
+                                      width: maxX - minX,
+                                      height: maxY - minY
+                                    };
+                                    onDetected(code.data, box);
+                                  }
                                 }
                                 if (this.state.scanning)
                                   requestAnimationFrame(scan);
@@ -1817,7 +1989,8 @@ export default class App extends React.Component {
                   <div className="dash-scanner-line" />
                 </div>
                 <p className="dash-scanner-hint">
-                  Point at a Passport event QR code
+                  {this.state.scanHint ||
+                    "Point at a Passport event QR code"}
                 </p>
               </div>
             </div>

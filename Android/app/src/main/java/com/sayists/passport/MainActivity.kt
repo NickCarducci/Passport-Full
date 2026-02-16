@@ -745,59 +745,7 @@ class MainActivity : AppCompatActivity() {
 
                 Thread {
                     try {
-                    // Step 1: Get one-time code
-                    // Ensure eventId is properly typed as string
-                    val codeJson = JSONObject().apply {
-                        put("eventId", eventId.toString().trim())
-                    }
-                    val codeConn = (URL("https://pass.contact/api/code").openConnection() as HttpURLConnection).apply {
-                        requestMethod = "POST"
-                        setRequestProperty("Content-Type", "application/json; charset=utf-8")
-                        setRequestProperty("Authorization", "Bearer $idToken")
-                        doOutput = true
-                        // Set timeouts to prevent indefinite hangs (30 seconds)
-                        connectTimeout = 30000
-                        readTimeout = 30000
-                    }
-                    OutputStreamWriter(codeConn.outputStream).use { it.write(codeJson.toString()) }
-
-                    val codeResponseCode = codeConn.responseCode
-                    if (codeResponseCode !in 200..299) {
-                        val errorMsg = try {
-                            codeConn.errorStream?.bufferedReader()?.readText() ?: "Request failed"
-                        } catch (e: Exception) {
-                            "Request failed with code $codeResponseCode"
-                        }
-                        codeConn.disconnect()
-                        showErrorDialog("Code API error ($codeResponseCode): $errorMsg\n\nSent data:\n${codeJson.toString(2)}")
-                        return@Thread
-                    }
-
-                    val codeData = codeConn.inputStream.bufferedReader().readText()
-                    codeConn.disconnect()
-                    val codeRes = JSONObject(codeData)
-
-                    if (codeRes.optString("message") == "already attended.") {
-                        runOnUiThread {
-                            Toast.makeText(this, "You already attended this event", Toast.LENGTH_LONG).show()
-                            animateToMode(ViewMode.LIST)
-                        }
-                        return@Thread
-                    }
-                    val code = codeRes.optString("code", "").trim()
-                    if (code.isEmpty()) {
-                        val message = codeRes.optString("message", "No code returned from server")
-                        showErrorDialog("$message\n\nServer response:\n${codeRes.toString(2)}")
-                        return@Thread
-                    }
-
-                    // Validate code format (should be alphanumeric)
-                    if (!code.matches(Regex("^[a-zA-Z0-9]+$"))) {
-                        showErrorDialog("Invalid code format received: '$code'\n\nExpected alphanumeric code.")
-                        return@Thread
-                    }
-
-                    // Step 2: Attend with code
+                    // Step 1: Attend directly (no one-time code)
                     // Get saved profile data from Firestore (blocking call in background thread)
                     val studentId = user.email?.substringBefore("@")?.trim() ?: ""
                     var savedFullName = ""
@@ -817,7 +765,6 @@ class MainActivity : AppCompatActivity() {
                     // Validate all fields are properly typed as strings
                     val attendJson = JSONObject().apply {
                         put("eventId", eventId.toString().trim())
-                        put("code", code.toString().trim())
                         put("fullName", savedFullName.toString())
                         put("address", savedAddress.toString())
                     }

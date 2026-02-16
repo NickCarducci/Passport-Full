@@ -317,41 +317,9 @@ struct ContentView: View {
                 return
             }
 
-            // Step 1: Get one-time code
-            let codeBody = try? JSONSerialization.data(withJSONObject: ["eventId": eventId])
-            var codeReq = URLRequest(url: URL(string: "https://pass.contact/api/code")!)
-            codeReq.httpMethod = "POST"
-            codeReq.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            codeReq.setValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
-            codeReq.httpBody = codeBody
-
-            guard let (codeData, _) = try? await URLSession.shared.data(for: codeReq),
-                let codeRes = try? JSONDecoder().decode(CodeResponse.self, from: codeData)
-            else {
-                print("Code request failed")
-                return
-            }
-
-            if codeRes.message == "already attended." {
-                DispatchQueue.main.async {
-                    withAnimation(.spring()) {
-                        self.eventTitle = "already attended."
-                        self.underlayMode = .list
-                        presentEventDetail(eventId: eventId)
-                    }
-                }
-                return
-            }
-
-            guard let code = codeRes.code else {
-                print("No code returned: \(codeRes.message ?? "")")
-                return
-            }
-
             // Step 2: Attend with code
             let attendBody = try? JSONSerialization.data(withJSONObject: [
                 "eventId": eventId,
-                "code": code,
                 "fullName": fullName,
                 "address": address,
             ])

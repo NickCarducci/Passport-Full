@@ -23,7 +23,6 @@
 		B10C0DE1C0DE000000000205 /* GestureStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000105 /* GestureStateManager.swift */; };
 		B10C0DE1C0DE000000000206 /* AuthUIPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000106 /* AuthUIPresenter.swift */; };
 		B10C0DE1C0DE000000000207 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000107 /* Message.swift */; };
-		B10C0DE1C0DE000000000208 /* CodeResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000108 /* CodeResponse.swift */; };
 		B10C0DE1C0DE000000000209 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE000000000109 /* Event.swift */; };
 		B10C0DE1C0DE00000000020A /* Leader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE00000000010A /* Leader.swift */; };
 		B10C0DE1C0DE00000000020B /* UnderlayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C0DE1C0DE00000000010B /* UnderlayMode.swift */; };
@@ -48,7 +47,6 @@
 		B10C0DE1C0DE000000000105 /* GestureStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureStateManager.swift; sourceTree = "<group>"; };
 		B10C0DE1C0DE000000000106 /* AuthUIPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthUIPresenter.swift; sourceTree = "<group>"; };
 		B10C0DE1C0DE000000000107 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
-		B10C0DE1C0DE000000000108 /* CodeResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeResponse.swift; sourceTree = "<group>"; };
 		B10C0DE1C0DE000000000109 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		B10C0DE1C0DE00000000010A /* Leader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Leader.swift; sourceTree = "<group>"; };
 		B10C0DE1C0DE00000000010B /* UnderlayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnderlayMode.swift; sourceTree = "<group>"; };
@@ -111,7 +109,6 @@
 		B10C0DE1C0DE000000000010 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				B10C0DE1C0DE000000000108 /* CodeResponse.swift */,
 				B10C0DE1C0DE000000000109 /* Event.swift */,
 				B10C0DE1C0DE00000000010A /* Leader.swift */,
 				B10C0DE1C0DE000000000107 /* Message.swift */,
@@ -260,7 +257,6 @@
 				B10C0DE1C0DE000000000205 /* GestureStateManager.swift in Sources */,
 				B10C0DE1C0DE000000000206 /* AuthUIPresenter.swift in Sources */,
 				B10C0DE1C0DE000000000207 /* Message.swift in Sources */,
-				B10C0DE1C0DE000000000208 /* CodeResponse.swift in Sources */,
 				B10C0DE1C0DE000000000209 /* Event.swift in Sources */,
 				B10C0DE1C0DE00000000020A /* Leader.swift in Sources */,
 				B10C0DE1C0DE00000000020B /* UnderlayMode.swift in Sources */,
