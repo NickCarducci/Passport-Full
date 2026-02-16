@@ -75,7 +75,8 @@ export default class App extends React.Component {
       loading: true,
       meAuth: {},
       storedAuth,
-      activeAdminTab: "events"
+      activeAdminTab: "events",
+      allowScreenQr: false
     };
     window.recaptchaId = "";
     this.ra = React.createRef();
@@ -137,7 +138,10 @@ export default class App extends React.Component {
 
   switchAccount = () => {
     const provider = new OAuthProvider("microsoft.com");
-    provider.setCustomParameters({ tenant: "organizations", prompt: "select_account" });
+    provider.setCustomParameters({
+      tenant: "organizations",
+      prompt: "select_account"
+    });
     signInWithPopup(getAuth(), provider)
       .then((result) => {
         console.log("Switched to:", result.user.email);
@@ -201,7 +205,9 @@ export default class App extends React.Component {
         })
       }).then((r) => r.json());
 
-      window.alert(attendRes.message + (attendRes.title ? ": " + attendRes.title : ""));
+      window.alert(
+        attendRes.message + (attendRes.title ? ": " + attendRes.title : "")
+      );
       this.props.navigate("/");
     } catch (err) {
       window.alert("Attendance failed: " + err.message);
@@ -338,8 +344,7 @@ export default class App extends React.Component {
         const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         if (luma < 200) continue;
         const rightIdx = (y * width + Math.min(x + 1, width - 1)) * 4;
-        const downIdx =
-          (Math.min(y + 1, height - 1) * width + x) * 4;
+        const downIdx = (Math.min(y + 1, height - 1) * width + x) * 4;
         const lumaRight =
           0.2126 * data[rightIdx] +
           0.7152 * data[rightIdx + 1] +
@@ -362,7 +367,6 @@ export default class App extends React.Component {
     const avgDeviation = deviation / count;
     return variance >= 14 && avgDeviation >= 4;
   };
-
 
   componentDidMount = () => {
     onAuthStateChanged(
@@ -565,11 +569,23 @@ export default class App extends React.Component {
               ) : (
                 <>
                   <h2>Your Information</h2>
-                  <p><strong>Email:</strong> {this.state.auth.email}</p>
-                  <p><strong>Student ID:</strong> {this.state.user?.studentId || "Loading..."}</p>
-                  <p><strong>Display Name:</strong> {myLeader?.username || "Not set"}</p>
-                  <p><strong>Events Attended:</strong> {eventsAttended}</p>
-                  <p><strong>Current Rank:</strong> {rankDisplay}</p>
+                  <p>
+                    <strong>Email:</strong> {this.state.auth.email}
+                  </p>
+                  <p>
+                    <strong>Student ID:</strong>{" "}
+                    {this.state.user?.studentId || "Loading..."}
+                  </p>
+                  <p>
+                    <strong>Display Name:</strong>{" "}
+                    {myLeader?.username || "Not set"}
+                  </p>
+                  <p>
+                    <strong>Events Attended:</strong> {eventsAttended}
+                  </p>
+                  <p>
+                    <strong>Current Rank:</strong> {rankDisplay}
+                  </p>
 
                   <h2>Data Management</h2>
 
@@ -585,7 +601,12 @@ export default class App extends React.Component {
                         ["Display Name", myLeader?.username || ""],
                         ["Events Attended", eventsAttended],
                         ["Current Rank", rankDisplay],
-                        ["Account Created", this.state.user?.createdAt?.toDate?.()?.toLocaleDateString() || "Unknown"]
+                        [
+                          "Account Created",
+                          this.state.user?.createdAt
+                            ?.toDate?.()
+                            ?.toLocaleDateString() || "Unknown"
+                        ]
                       ]}
                       filename={`passport-data-${this.state.user?.studentId || "export"}.csv`}
                     >
@@ -595,7 +616,10 @@ export default class App extends React.Component {
 
                   <div style={{ marginBottom: "20px" }}>
                     <h3>Remove From Leaderboard</h3>
-                    <p>Hide your display name from the public leaderboard while keeping your account.</p>
+                    <p>
+                      Hide your display name from the public leaderboard while
+                      keeping your account.
+                    </p>
                     <button
                       className="btn btn-primary"
                       onClick={() => {
@@ -604,8 +628,14 @@ export default class App extends React.Component {
                         const ref = doc(firestore, "leaders", id);
                         if (myLeader) {
                           updateDoc(ref, { username: "" })
-                            .then(() => window.alert("Display name removed from leaderboard"))
-                            .catch((err) => window.alert("Failed: " + err.message));
+                            .then(() =>
+                              window.alert(
+                                "Display name removed from leaderboard"
+                              )
+                            )
+                            .catch((err) =>
+                              window.alert("Failed: " + err.message)
+                            );
                         } else {
                           window.alert("You're not on the leaderboard yet.");
                         }
@@ -615,49 +645,85 @@ export default class App extends React.Component {
                     </button>
                   </div>
 
-                  <div style={{
-                    marginTop: "40px",
-                    padding: "20px",
-                    border: "2px solid var(--danger)",
-                    borderRadius: "var(--radius-md)",
-                    backgroundColor: "#fff5f5"
-                  }}>
+                  <div
+                    style={{
+                      marginTop: "40px",
+                      padding: "20px",
+                      border: "2px solid var(--danger)",
+                      borderRadius: "var(--radius-md)",
+                      backgroundColor: "#fff5f5"
+                    }}
+                  >
                     <h3 style={{ color: "var(--danger)" }}>Delete Account</h3>
                     <p>
-                      Permanently delete your account and all associated data. This action cannot be undone.
-                      You will be removed from the leaderboard and disqualified from any pending prizes.
+                      Permanently delete your account and all associated data.
+                      This action cannot be undone. You will be removed from the
+                      leaderboard and disqualified from any pending prizes.
                     </p>
-                    <p><strong>To delete your account:</strong></p>
+                    <p>
+                      <strong>To delete your account:</strong>
+                    </p>
                     <ol>
-                      <li>Contact Monmouth University IT Services or the Office of the Provost</li>
-                      <li>Email: sayists@icloud.com or visit the Provost Office</li>
-                      <li>Provide your student ID: <strong>{this.state.user?.studentId}</strong></li>
+                      <li>
+                        Contact Monmouth University IT Services or the Office of
+                        the Provost
+                      </li>
+                      <li>
+                        Email: sayists@icloud.com or visit the Provost Office
+                      </li>
+                      <li>
+                        Provide your student ID:{" "}
+                        <strong>{this.state.user?.studentId}</strong>
+                      </li>
                       <li>Request account deletion</li>
-                      <li>Your data will be permanently deleted within 30 days</li>
+                      <li>
+                        Your data will be permanently deleted within 30 days
+                      </li>
                     </ol>
-                    <p style={{ fontSize: "0.9rem", marginTop: "15px", opacity: 0.8 }}>
-                      <strong>Note:</strong> Account deletion is processed manually to ensure security.
-                      Automated deletion will be available in a future update.
+                    <p
+                      style={{
+                        fontSize: "0.9rem",
+                        marginTop: "15px",
+                        opacity: 0.8
+                      }}
+                    >
+                      <strong>Note:</strong> Account deletion is processed
+                      manually to ensure security. Automated deletion will be
+                      available in a future update.
                     </p>
                   </div>
 
                   <h2 style={{ marginTop: "40px" }}>Privacy & Legal</h2>
-                  <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
+                  <div
+                    style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}
+                  >
                     <span
                       onClick={() => this.props.navigate("/privacy")}
-                      style={{ color: "var(--primary)", cursor: "pointer", textDecoration: "underline" }}
+                      style={{
+                        color: "var(--primary)",
+                        cursor: "pointer",
+                        textDecoration: "underline"
+                      }}
                     >
                       Privacy Policy
                     </span>
                     <span
                       onClick={() => this.props.navigate("/terms")}
-                      style={{ color: "var(--primary)", cursor: "pointer", textDecoration: "underline" }}
+                      style={{
+                        color: "var(--primary)",
+                        cursor: "pointer",
+                        textDecoration: "underline"
+                      }}
                     >
                       Terms of Service
                     </span>
                     <span
                       onClick={() => this.props.navigate("/rules")}
-                      style={{ color: "var(--primary)", cursor: "pointer", textDecoration: "underline" }}
+                      style={{
+                        color: "var(--primary)",
+                        cursor: "pointer",
+                        textDecoration: "underline"
+                      }}
                     >
                       Official Rules
                     </span>
@@ -678,12 +744,15 @@ export default class App extends React.Component {
               </button>
             </div>
             <div className="privacy-content">
-              <p><strong>Last Updated:</strong> February 2026</p>
+              <p>
+                <strong>Last Updated:</strong> February 2026
+              </p>
 
               <h2>Overview</h2>
               <p>
-                By using the Monmouth University Passport application, you agree to these Terms of Service
-                and all related policies governing the app and Student Scholarship Week attendance tracking.
+                By using the Monmouth University Passport application, you agree
+                to these Terms of Service and all related policies governing the
+                app and Student Scholarship Week attendance tracking.
               </p>
 
               <h2>Applicable Policies</h2>
@@ -692,18 +761,28 @@ export default class App extends React.Component {
                 <li>
                   <strong
                     onClick={() => this.props.navigate("/privacy")}
-                    style={{ cursor: "pointer", color: "var(--primary)", textDecoration: "underline" }}
+                    style={{
+                      cursor: "pointer",
+                      color: "var(--primary)",
+                      textDecoration: "underline"
+                    }}
                   >
                     Privacy Policy
-                  </strong> - How we collect, use, and protect your data
+                  </strong>{" "}
+                  - How we collect, use, and protect your data
                 </li>
                 <li>
                   <strong
                     onClick={() => this.props.navigate("/rules")}
-                    style={{ cursor: "pointer", color: "var(--primary)", textDecoration: "underline" }}
+                    style={{
+                      cursor: "pointer",
+                      color: "var(--primary)",
+                      textDecoration: "underline"
+                    }}
                   >
                     Official Rules
-                  </strong> - Contest rules for Student Scholarship Week prizes
+                  </strong>{" "}
+                  - Contest rules for Student Scholarship Week prizes
                 </li>
               </ul>
 
@@ -713,46 +792,51 @@ export default class App extends React.Component {
                 <li>Use your own Monmouth University credentials only</li>
                 <li>Check in only at events you physically attend</li>
                 <li>Not share, transfer, or sell your account</li>
-                <li>Not attempt to manipulate attendance records or rankings</li>
+                <li>
+                  Not attempt to manipulate attendance records or rankings
+                </li>
                 <li>Not interfere with the app's security measures</li>
               </ul>
 
               <h2>Account Authentication</h2>
               <p>
-                Access requires valid Monmouth University student credentials via Microsoft OAuth.
-                The university may revoke access for policy violations or upon graduation/withdrawal.
+                Access requires valid Monmouth University student credentials
+                via Microsoft OAuth. The university may revoke access for policy
+                violations or upon graduation/withdrawal.
               </p>
 
               <h2>Attendance Verification</h2>
               <p>
-                Event attendance is recorded via QR code scanning.
-                Fraudulent check-ins may result in disqualification from prizes and potential
-                academic integrity proceedings.
+                Event attendance is recorded via QR code scanning. Fraudulent
+                check-ins may result in disqualification from prizes and
+                potential academic integrity proceedings.
               </p>
 
               <h2>No Warranty</h2>
               <p>
-                The app is provided "as is" without warranties. We do not guarantee uninterrupted
-                access, error-free operation, or that the app will meet your specific needs.
+                The app is provided "as is" without warranties. We do not
+                guarantee uninterrupted access, error-free operation, or that
+                the app will meet your specific needs.
               </p>
 
               <h2>Limitation of Liability</h2>
               <p>
-                Monmouth University is not liable for technical issues, lost data, or inability
-                to record attendance due to app malfunction. Prize eligibility may be affected
-                if technical issues prevent attendance verification.
+                Monmouth University is not liable for technical issues, lost
+                data, or inability to record attendance due to app malfunction.
+                Prize eligibility may be affected if technical issues prevent
+                attendance verification.
               </p>
 
               <h2>Changes to Terms</h2>
               <p>
-                We may update these terms at any time. Continued use after changes constitutes
-                acceptance of modified terms.
+                We may update these terms at any time. Continued use after
+                changes constitutes acceptance of modified terms.
               </p>
 
               <h2>Contact</h2>
               <p>
-                Questions about these terms should be directed to Monmouth University
-                Office of the Provost or IT Services.
+                Questions about these terms should be directed to Monmouth
+                University Office of the Provost or IT Services.
               </p>
             </div>
           </div>
@@ -768,38 +852,55 @@ export default class App extends React.Component {
               </button>
             </div>
             <div className="privacy-content">
-              <p><strong>Last Updated:</strong> February 2026</p>
-              <p><strong>Student Scholarship Week Attendance Recognition Program</strong></p>
+              <p>
+                <strong>Last Updated:</strong> February 2026
+              </p>
+              <p>
+                <strong>
+                  Student Scholarship Week Attendance Recognition Program
+                </strong>
+              </p>
 
               <h2>1. Sponsor</h2>
               <p>
-                This attendance recognition program is sponsored by Monmouth University,
-                400 Cedar Avenue, West Long Branch, NJ 07764, through the Office of the Provost.
+                This attendance recognition program is sponsored by Monmouth
+                University, 400 Cedar Avenue, West Long Branch, NJ 07764,
+                through the Office of the Provost.
               </p>
               <p>
-                <strong>Important Disclosure:</strong> Apple Inc. and Google LLC are not sponsors
-                of this program and are not involved in any way with the distribution of prizes.
+                <strong>Important Disclosure:</strong> Apple Inc. and Google LLC
+                are not sponsors of this program and are not involved in any way
+                with the distribution of prizes.
               </p>
 
               <h2>2. Eligibility</h2>
-              <p>Open to currently enrolled Monmouth University students only. Participants must:</p>
+              <p>
+                Open to currently enrolled Monmouth University students only.
+                Participants must:
+              </p>
               <ul>
                 <li>Have active Monmouth University student credentials</li>
                 <li>Be enrolled during the Student Scholarship Week period</li>
-                <li>Be at least 16 years old, or have parental consent if under 18</li>
-                <li>Comply with university policies and academic integrity standards</li>
+                <li>
+                  Be at least 16 years old, or have parental consent if under 18
+                </li>
+                <li>
+                  Comply with university policies and academic integrity
+                  standards
+                </li>
               </ul>
               <p>
-                University employees, faculty, staff, and immediate family members are eligible
-                to participate but may be ineligible for certain prize categories at the
-                university's discretion.
+                University employees, faculty, staff, and immediate family
+                members are eligible to participate but may be ineligible for
+                certain prize categories at the university's discretion.
               </p>
 
               <h2>3. Program Period</h2>
               <p>
-                The program runs during the annual Student Scholarship Week (typically in April).
-                Specific dates are announced each academic year. Only events attended during the
-                designated week are eligible for recognition.
+                The program runs during the annual Student Scholarship Week
+                (typically in April). Specific dates are announced each academic
+                year. Only events attended during the designated week are
+                eligible for recognition.
               </p>
 
               <h2>4. How to Participate</h2>
@@ -808,75 +909,109 @@ export default class App extends React.Component {
                 <li>Download the Monmouth University Passport app</li>
                 <li>Sign in with your Monmouth University credentials</li>
                 <li>Attend Student Scholarship Week events</li>
-                <li>Scan the QR code displayed at each event to record attendance</li>
-                <li>Each successful scan records attendance for the signed-in student</li>
+                <li>
+                  Scan the QR code displayed at each event to record attendance
+                </li>
+                <li>
+                  Each successful scan records attendance for the signed-in
+                  student
+                </li>
               </ul>
 
               <h2>5. Winner Determination</h2>
               <p>
-                Winners are determined by total verified event attendance during Student Scholarship Week.
-                The app maintains a real-time leaderboard showing participant rankings.
+                Winners are determined by total verified event attendance during
+                Student Scholarship Week. The app maintains a real-time
+                leaderboard showing participant rankings.
               </p>
               <p>
-                The number of prize recipients is determined by the university each year based on
-                participation levels and available resources. Typically, top attendees (highest
-                attendance counts) receive recognition.
+                The number of prize recipients is determined by the university
+                each year based on participation levels and available resources.
+                Typically, top attendees (highest attendance counts) receive
+                recognition.
               </p>
               <p>
-                In the event of tied attendance counts, the university may award prizes to all
-                tied participants or use timestamp of final event attendance as a tiebreaker.
+                In the event of tied attendance counts, the university may award
+                prizes to all tied participants or use timestamp of final event
+                attendance as a tiebreaker.
               </p>
 
               <h2>6. Prizes</h2>
               <p>
-                Prizes typically consist of gift cards (e.g., Dunkin', campus bookstore, or similar vendors)
-                with approximate retail value of $5-$25 per card. Specific prizes and quantities are
-                determined annually and announced at the start of Student Scholarship Week.
+                Prizes typically consist of gift cards (e.g., Dunkin', campus
+                bookstore, or similar vendors) with approximate retail value of
+                $5-$25 per card. Specific prizes and quantities are determined
+                annually and announced at the start of Student Scholarship Week.
               </p>
-              <p><strong>Prize Fulfillment:</strong></p>
+              <p>
+                <strong>Prize Fulfillment:</strong>
+              </p>
               <ul>
-                <li>Gift cards are purchased prior to the start of Student Scholarship Week</li>
-                <li>Winners are verified after the program period concludes (approximately 1 month review period)</li>
-                <li>Prizes are mailed to winners' registered university addresses or distributed via campus mail</li>
-                <li>Shipping delays may occur; typical delivery is 4-8 weeks after Student Scholarship Week ends</li>
+                <li>
+                  Gift cards are purchased prior to the start of Student
+                  Scholarship Week
+                </li>
+                <li>
+                  Winners are verified after the program period concludes
+                  (approximately 1 month review period)
+                </li>
+                <li>
+                  Prizes are mailed to winners' registered university addresses
+                  or distributed via campus mail
+                </li>
+                <li>
+                  Shipping delays may occur; typical delivery is 4-8 weeks after
+                  Student Scholarship Week ends
+                </li>
                 <li>No cash substitutions or prize transfers</li>
                 <li>Prizes are awarded "as is" with no warranty</li>
               </ul>
               <p>
-                Approximate total prize pool value varies by year. Odds of winning depend on total
-                participants and individual attendance levels. Based on historical participation
-                (estimated 100-500 active users per year), odds range from approximately 1:10 to 1:50.
+                Approximate total prize pool value varies by year. Odds of
+                winning depend on total participants and individual attendance
+                levels. Based on historical participation (estimated 100-500
+                active users per year), odds range from approximately 1:10 to
+                1:50.
               </p>
 
               <h2>7. Winner Notification</h2>
               <p>
-                Winners will be notified via their Monmouth University email address within
-                30 days of Student Scholarship Week conclusion. Winners must respond within
-                14 days to claim prizes. Unclaimed prizes may be forfeited.
+                Winners will be notified via their Monmouth University email
+                address within 30 days of Student Scholarship Week conclusion.
+                Winners must respond within 14 days to claim prizes. Unclaimed
+                prizes may be forfeited.
               </p>
 
               <h2>8. Verification and Anti-Fraud Measures</h2>
               <p>
-                All attendance records are subject to verification.
-                codes to prevent fraudulent check-ins. The university reserves the right to:
+                All attendance records are subject to verification. codes to
+                prevent fraudulent check-ins. The university reserves the right
+                to:
               </p>
               <ul>
                 <li>Audit attendance records for accuracy</li>
-                <li>Disqualify participants who violate academic integrity policies</li>
-                <li>Disqualify participants who attempt to manipulate the system</li>
+                <li>
+                  Disqualify participants who violate academic integrity
+                  policies
+                </li>
+                <li>
+                  Disqualify participants who attempt to manipulate the system
+                </li>
                 <li>Investigate suspicious attendance patterns</li>
                 <li>Require additional verification for prize recipients</li>
               </ul>
               <p>
-                Fraudulent check-ins or attempts to circumvent security measures may result in
-                disqualification and potential academic integrity proceedings.
+                Fraudulent check-ins or attempts to circumvent security measures
+                may result in disqualification and potential academic integrity
+                proceedings.
               </p>
 
               <h2>9. Taxes</h2>
               <p>
-                Winners are responsible for any applicable federal, state, or local taxes.
-                Prize values are generally below IRS reporting thresholds, but winners should
-                consult tax professionals for individual circumstances.
+                Winners are responsible for any applicable federal, state, or
+                local taxes. Prize values are generally below IRS reporting
+                thresholds, but winners should consult tax professionals for
+                individual circumstances.
               </p>
 
               <h2>10. Privacy</h2>
@@ -884,37 +1019,53 @@ export default class App extends React.Component {
                 Participant information is collected and used according to our{" "}
                 <strong
                   onClick={() => this.props.navigate("/privacy")}
-                  style={{ cursor: "pointer", color: "var(--primary)", textDecoration: "underline" }}
+                  style={{
+                    cursor: "pointer",
+                    color: "var(--primary)",
+                    textDecoration: "underline"
+                  }}
                 >
                   Privacy Policy
-                </strong>. By participating, you consent to the collection and use of your data as described.
+                </strong>
+                . By participating, you consent to the collection and use of
+                your data as described.
               </p>
 
               <h2>11. Publicity</h2>
               <p>
-                Winners may be recognized publicly (e.g., in university communications, on
-                leaderboards). By participating, you consent to such recognition without
-                additional compensation.
+                Winners may be recognized publicly (e.g., in university
+                communications, on leaderboards). By participating, you consent
+                to such recognition without additional compensation.
               </p>
 
               <h2>12. General Conditions</h2>
               <ul>
-                <li>The university reserves the right to modify or cancel the program at any time</li>
-                <li>The university is not responsible for technical failures, lost attendance records, or app malfunctions</li>
-                <li>Decisions regarding winner selection and eligibility are final</li>
+                <li>
+                  The university reserves the right to modify or cancel the
+                  program at any time
+                </li>
+                <li>
+                  The university is not responsible for technical failures, lost
+                  attendance records, or app malfunctions
+                </li>
+                <li>
+                  Decisions regarding winner selection and eligibility are final
+                </li>
                 <li>Void where prohibited by law</li>
               </ul>
 
               <h2>13. Disputes</h2>
               <p>
-                Any disputes arising from this program shall be governed by New Jersey law
-                and resolved through the university's standard grievance procedures.
+                Any disputes arising from this program shall be governed by New
+                Jersey law and resolved through the university's standard
+                grievance procedures.
               </p>
 
               <h2>14. Questions</h2>
               <p>
-                For questions about these rules, contact the Monmouth University Office of
-                the Provost or visit the Student Scholarship Week information page.
+                For questions about these rules, contact the Monmouth University
+                Office of the Provost or visit the Student Scholarship Week
+                information page.
               </p>
             </div>
           </div>
@@ -930,21 +1081,28 @@ export default class App extends React.Component {
               </button>
             </div>
             <div className="privacy-content">
-              <p><strong>Last Updated:</strong> February 2026</p>
+              <p>
+                <strong>Last Updated:</strong> February 2026
+              </p>
 
               <h2>Introduction</h2>
               <p>
-                Monmouth University Passport ("we," "our," or "us") operates this application
-                to help students track event attendance during Scholarship Week and other campus events.
+                Monmouth University Passport ("we," "our," or "us") operates
+                this application to help students track event attendance during
+                Scholarship Week and other campus events.
               </p>
 
               <h2>Age Requirements</h2>
               <p>
-                <strong>This app is intended for users 16 years of age and older.</strong> Users
-                under 18 must have parental or guardian consent to participate. Our services are
-                not directed to children under the age of 13, and we do not knowingly collect
-                personal information from children under 13. If you believe we have inadvertently
-                collected such information, please contact us immediately at sayists@icloud.com.
+                <strong>
+                  This app is intended for users 16 years of age and older.
+                </strong>{" "}
+                Users under 18 must have parental or guardian consent to
+                participate. Our services are not directed to children under the
+                age of 13, and we do not knowingly collect personal information
+                from children under 13. If you believe we have inadvertently
+                collected such information, please contact us immediately at
+                sayists@icloud.com.
               </p>
 
               <h2>Information We Collect</h2>
@@ -952,120 +1110,212 @@ export default class App extends React.Component {
 
               <h3>1. Identifiers</h3>
               <ul>
-                <li><strong>University Email Address:</strong> Used for authentication and account management</li>
-                <li><strong>Student ID:</strong> Derived from your email, used to uniquely identify your account</li>
-                <li><strong>Display Name:</strong> Optional user-provided name for leaderboard display</li>
-                <li><strong>Mailing Address:</strong> Collected from prize winners for gift card fulfillment</li>
+                <li>
+                  <strong>University Email Address:</strong> Used for
+                  authentication and account management
+                </li>
+                <li>
+                  <strong>Student ID:</strong> Derived from your email, used to
+                  uniquely identify your account
+                </li>
+                <li>
+                  <strong>Display Name:</strong> Optional user-provided name for
+                  leaderboard display
+                </li>
+                <li>
+                  <strong>Mailing Address:</strong> Collected from prize winners
+                  for gift card fulfillment
+                </li>
               </ul>
-              <p style={{ fontSize: "0.9rem", marginTop: "10px", opacity: 0.85 }}>
-                <strong>Note on Microsoft Authentication:</strong> When you sign in with Microsoft, Firebase Authentication
-                may receive additional profile information from your Microsoft account (such as your name or profile photo).
-                This data is processed solely for authentication purposes and is <strong>not stored in our database</strong>.
-                We only store your email address and derived student ID.
+              <p
+                style={{ fontSize: "0.9rem", marginTop: "10px", opacity: 0.85 }}
+              >
+                <strong>Note on Microsoft Authentication:</strong> When you sign
+                in with Microsoft, Firebase Authentication may receive
+                additional profile information from your Microsoft account (such
+                as your name or profile photo). This data is processed solely
+                for authentication purposes and is{" "}
+                <strong>not stored in our database</strong>. We only store your
+                email address and derived student ID.
               </p>
 
               <h3>2. App Activity</h3>
               <ul>
-                <li><strong>Event Attendance Timestamps:</strong> Date and time of each event check-in</li>
-                <li><strong>QR Code Scan Data:</strong> Verification codes generated when scanning event QR codes</li>
-                <li><strong>Attendance Records:</strong> Total events attended and historical attendance data</li>
-                <li><strong>Leaderboard Rankings:</strong> Your position relative to other participants</li>
+                <li>
+                  <strong>Event Attendance Timestamps:</strong> Date and time of
+                  each event check-in
+                </li>
+                <li>
+                  <strong>QR Code Scan Data:</strong> Verification codes
+                  generated when scanning event QR codes
+                </li>
+                <li>
+                  <strong>Attendance Records:</strong> Total events attended and
+                  historical attendance data
+                </li>
+                <li>
+                  <strong>Leaderboard Rankings:</strong> Your position relative
+                  to other participants
+                </li>
               </ul>
 
               <h2>How We Use Your Information</h2>
-              <p>We use the collected information for the following purposes:</p>
+              <p>
+                We use the collected information for the following purposes:
+              </p>
               <ul>
-                <li><strong>Account Management:</strong> Authenticate users, manage profiles, and process account deletion requests (uses email and student ID)</li>
-                <li><strong>Event Check-ins:</strong> Record attendance when you scan QR codes at events (uses student ID and attendance timestamps)</li>
-                <li><strong>Prize Distribution:</strong> Determine winners and mail gift cards to recipients (uses name, student ID, email, mailing address)</li>
-                <li><strong>Leaderboard Display:</strong> Show real-time rankings of top participants (uses optional display name or "Anonymous")</li>
-                <li><strong>Fraud Prevention:</strong> Detect and prevent duplicate check-ins and system manipulation (uses student ID and attendance patterns)</li>
-                <li><strong>Analytics:</strong> Generate anonymized, aggregated attendance metrics for event performance and planning (does not use personal identifiers)</li>
+                <li>
+                  <strong>Account Management:</strong> Authenticate users,
+                  manage profiles, and process account deletion requests (uses
+                  email and student ID)
+                </li>
+                <li>
+                  <strong>Event Check-ins:</strong> Record attendance when you
+                  scan QR codes at events (uses student ID and attendance
+                  timestamps)
+                </li>
+                <li>
+                  <strong>Prize Distribution:</strong> Determine winners and
+                  mail gift cards to recipients (uses name, student ID, email,
+                  mailing address)
+                </li>
+                <li>
+                  <strong>Leaderboard Display:</strong> Show real-time rankings
+                  of top participants (uses optional display name or
+                  "Anonymous")
+                </li>
+                <li>
+                  <strong>Fraud Prevention:</strong> Detect and prevent
+                  duplicate check-ins and system manipulation (uses student ID
+                  and attendance patterns)
+                </li>
+                <li>
+                  <strong>Analytics:</strong> Generate anonymized, aggregated
+                  attendance metrics for event performance and planning (does
+                  not use personal identifiers)
+                </li>
               </ul>
-              <p style={{ fontSize: "0.9rem", marginTop: "10px", opacity: 0.85 }}>
-                <strong>Data Usage Summary:</strong> Account management, fraud prevention, and prize distribution require personal
-                identifiers (email, student ID, mailing address) to function properly. Analytics uses only app activity data
-                (attendance records) and does not access personal identifiers. All analytics data is aggregated and anonymized
-                (e.g., "50 students attended Event X") before being shared with the University for event planning.
+              <p
+                style={{ fontSize: "0.9rem", marginTop: "10px", opacity: 0.85 }}
+              >
+                <strong>Data Usage Summary:</strong> Account management, fraud
+                prevention, and prize distribution require personal identifiers
+                (email, student ID, mailing address) to function properly.
+                Analytics uses only app activity data (attendance records) and
+                does not access personal identifiers. All analytics data is
+                aggregated and anonymized (e.g., "50 students attended Event X")
+                before being shared with the University for event planning.
               </p>
 
               <h2>Data Storage and Security</h2>
               <p>
-                Your data is stored securely using Google Firebase services. We implement
-                appropriate security measures to protect your information from unauthorized access.
+                Your data is stored securely using Google Firebase services. We
+                implement appropriate security measures to protect your
+                information from unauthorized access.
               </p>
 
               <h2>Data Sharing</h2>
               <p>
-                <strong>We do not sell, rent, or trade your personal information to third parties
-                for marketing purposes.</strong> Your data is only shared in the following limited circumstances:
+                <strong>
+                  We do not sell, rent, or trade your personal information to
+                  third parties for marketing purposes.
+                </strong>{" "}
+                Your data is only shared in the following limited circumstances:
               </p>
               <ul>
                 <li>
-                  <strong>Monmouth University (Sponsor):</strong> We share your identifiers (name, student ID,
-                  email, mailing address) and attendance records with the Office of the Provost for prize
-                  verification and gift card fulfillment. The University also receives anonymized, aggregated
-                  attendance data for event performance metrics and future planning.
+                  <strong>Monmouth University (Sponsor):</strong> We share your
+                  identifiers (name, student ID, email, mailing address) and
+                  attendance records with the Office of the Provost for prize
+                  verification and gift card fulfillment. The University also
+                  receives anonymized, aggregated attendance data for event
+                  performance metrics and future planning.
                 </li>
                 <li>
-                  <strong>Service Providers:</strong> We use Google Firebase for data storage and Microsoft
-                  for authentication. These providers process data on our behalf and are contractually obligated
-                  to protect your information.
+                  <strong>Service Providers:</strong> We use Google Firebase for
+                  data storage and Microsoft for authentication. These providers
+                  process data on our behalf and are contractually obligated to
+                  protect your information.
                 </li>
                 <li>
-                  <strong>Legal Requirements:</strong> We may disclose information if required by law, court order,
-                  or government regulation.
+                  <strong>Legal Requirements:</strong> We may disclose
+                  information if required by law, court order, or government
+                  regulation.
                 </li>
               </ul>
               <p>
-                We do not share your data with advertisers, data brokers, or other third-party commercial entities.
+                We do not share your data with advertisers, data brokers, or
+                other third-party commercial entities.
               </p>
 
               <h2>Device Permissions</h2>
               <p>The app requests the following device permissions:</p>
               <ul>
                 <li>
-                  <strong>Camera:</strong> Required to scan QR codes at events for attendance verification.
-                  The camera is only active when you use the scan feature and no images are stored.
+                  <strong>Camera:</strong> Required to scan QR codes at events
+                  for attendance verification. The camera is only active when
+                  you use the scan feature and no images are stored.
                 </li>
                 <li>
-                  <strong>Internet:</strong> Required to sync attendance data with our servers
-                  and authenticate your account.
+                  <strong>Internet:</strong> Required to sync attendance data
+                  with our servers and authenticate your account.
                 </li>
               </ul>
 
               <h2>Data Retention</h2>
               <p>
-                We retain your attendance data for the duration of your enrollment at Monmouth University
-                plus one academic year for historical records and prize fulfillment. After this period,
+                We retain your attendance data for the duration of your
+                enrollment at Monmouth University plus one academic year for
+                historical records and prize fulfillment. After this period,
                 personally identifiable information is anonymized or deleted.
               </p>
 
               <h2>Your Rights</h2>
               <p>You have the right to:</p>
               <ul>
-                <li><strong>Access:</strong> Request a copy of your personal data</li>
-                <li><strong>Correction:</strong> Request correction of inaccurate data</li>
-                <li><strong>Deletion:</strong> Request deletion of your account and data (see below)</li>
-                <li><strong>Data Portability:</strong> Receive your attendance records in CSV format</li>
-                <li><strong>Opt-Out:</strong> Remove your display name from the public leaderboard</li>
+                <li>
+                  <strong>Access:</strong> Request a copy of your personal data
+                </li>
+                <li>
+                  <strong>Correction:</strong> Request correction of inaccurate
+                  data
+                </li>
+                <li>
+                  <strong>Deletion:</strong> Request deletion of your account
+                  and data (see below)
+                </li>
+                <li>
+                  <strong>Data Portability:</strong> Receive your attendance
+                  records in CSV format
+                </li>
+                <li>
+                  <strong>Opt-Out:</strong> Remove your display name from the
+                  public leaderboard
+                </li>
               </ul>
               <p>
-                To exercise any of these rights, contact the Office of the Provost or IT Services
-                with your student ID.
+                To exercise any of these rights, contact the Office of the
+                Provost or IT Services with your student ID.
               </p>
 
               <h2>Account Deletion</h2>
               <p>
-                You can request deletion of your account and all associated data at any time.
+                You can request deletion of your account and all associated data
+                at any time.
               </p>
-              <p><strong>Via Web App:</strong></p>
+              <p>
+                <strong>Via Web App:</strong>
+              </p>
               <ul>
                 <li>
                   Visit{" "}
                   <span
                     onClick={() => this.props.navigate("/account")}
-                    style={{ color: "var(--primary)", cursor: "pointer", textDecoration: "underline" }}
+                    style={{
+                      color: "var(--primary)",
+                      cursor: "pointer",
+                      textDecoration: "underline"
+                    }}
                   >
                     Account Settings
                   </span>{" "}
@@ -1073,40 +1323,52 @@ export default class App extends React.Component {
                 </li>
                 <li>Follow the account deletion instructions</li>
               </ul>
-              <p><strong>Via Mobile App:</strong></p>
+              <p>
+                <strong>Via Mobile App:</strong>
+              </p>
               <ul>
                 <li>Open the app menu and select "Account Settings"</li>
                 <li>Follow the deletion instructions provided</li>
               </ul>
-              <p><strong>Via Direct Contact:</strong></p>
+              <p>
+                <strong>Via Direct Contact:</strong>
+              </p>
               <ol>
-                <li>Contact Monmouth University IT Services or the Office of the Provost</li>
+                <li>
+                  Contact Monmouth University IT Services or the Office of the
+                  Provost
+                </li>
                 <li>Provide your student ID and request account deletion</li>
                 <li>Your data will be permanently deleted within 30 days</li>
               </ol>
               <p>
-                <strong>Note:</strong> Deleting your account will remove you from the leaderboard and disqualify
-                you from any pending prize eligibility. Historical aggregate data (anonymized)
-                may be retained for university records.
+                <strong>Note:</strong> Deleting your account will remove you
+                from the leaderboard and disqualify you from any pending prize
+                eligibility. Historical aggregate data (anonymized) may be
+                retained for university records.
               </p>
 
               <h2>Minors and Parental Consent</h2>
               <p>
-                <strong>Users aged 16-17:</strong> You may use this app with parental or guardian consent.
-                We recommend that parents review this privacy policy and discuss data collection practices
-                with their children before allowing participation.
+                <strong>Users aged 16-17:</strong> You may use this app with
+                parental or guardian consent. We recommend that parents review
+                this privacy policy and discuss data collection practices with
+                their children before allowing participation.
               </p>
               <p>
-                <strong>Children under 13:</strong> Our services are not directed to children under 13 years of age.
-                We do not knowingly collect personal information from children under 13. If we discover that we have
-                inadvertently collected information from a child under 13, we will promptly delete it. Parents who
-                believe we have collected information from their child under 13 should contact us at sayists@icloud.com.
+                <strong>Children under 13:</strong> Our services are not
+                directed to children under 13 years of age. We do not knowingly
+                collect personal information from children under 13. If we
+                discover that we have inadvertently collected information from a
+                child under 13, we will promptly delete it. Parents who believe
+                we have collected information from their child under 13 should
+                contact us at sayists@icloud.com.
               </p>
 
               <h2>Contact Us</h2>
               <p>
-                For questions about this privacy policy, to exercise your data rights, or to
-                request account deletion, please contact:
+                For questions about this privacy policy, to exercise your data
+                rights, or to request account deletion, please contact:
               </p>
               <ul>
                 <li>Monmouth University IT Services</li>
@@ -1116,8 +1378,8 @@ export default class App extends React.Component {
 
               <h2>Changes to This Policy</h2>
               <p>
-                We may update this privacy policy from time to time. Continued use of the
-                app constitutes acceptance of any changes.
+                We may update this privacy policy from time to time. Continued
+                use of the app constitutes acceptance of any changes.
               </p>
             </div>
           </div>
@@ -1305,19 +1567,31 @@ export default class App extends React.Component {
                 >
                   <span
                     onClick={() => this.props.navigate("/terms")}
-                    style={{ color: "#605e5c", cursor: "pointer", textDecoration: "underline" }}
+                    style={{
+                      color: "#605e5c",
+                      cursor: "pointer",
+                      textDecoration: "underline"
+                    }}
                   >
                     Terms
                   </span>
                   <span
                     onClick={() => this.props.navigate("/rules")}
-                    style={{ color: "#605e5c", cursor: "pointer", textDecoration: "underline" }}
+                    style={{
+                      color: "#605e5c",
+                      cursor: "pointer",
+                      textDecoration: "underline"
+                    }}
                   >
                     Rules
                   </span>
                   <span
                     onClick={() => this.props.navigate("/privacy")}
-                    style={{ color: "#605e5c", cursor: "pointer", textDecoration: "underline" }}
+                    style={{
+                      color: "#605e5c",
+                      cursor: "pointer",
+                      textDecoration: "underline"
+                    }}
                   >
                     Privacy
                   </span>
@@ -1387,7 +1661,9 @@ export default class App extends React.Component {
                         : setDoc(ref, { username: val, eventsAttended: 0 });
                       save
                         .then(() => window.alert("Username saved"))
-                        .catch((err) => window.alert("Save failed: " + err.message));
+                        .catch((err) =>
+                          window.alert("Save failed: " + err.message)
+                        );
                     }}
                   >
                     &#10003;
@@ -1397,7 +1673,9 @@ export default class App extends React.Component {
 
               {/* Check-In Toast */}
               {this.props.pathname.match(/^\/event\/(.+)$/) &&
-                new URLSearchParams(this.props.location.search).get("attend") && (
+                new URLSearchParams(this.props.location.search).get(
+                  "attend"
+                ) && (
                   <div className="dash-checkin-toast">
                     {this.state.user
                       ? "Processing attendance..."
@@ -1438,17 +1716,22 @@ export default class App extends React.Component {
                               : "TBD"}
                             {x.date && (
                               <span className="itinerary-time">
-                                {new Date(x.date).toLocaleTimeString(undefined, {
-                                  hour: "numeric",
-                                  minute: "2-digit"
-                                })}
+                                {new Date(x.date).toLocaleTimeString(
+                                  undefined,
+                                  {
+                                    hour: "numeric",
+                                    minute: "2-digit"
+                                  }
+                                )}
                               </span>
                             )}
                           </div>
                           <div className="itinerary-details">
                             <strong>{x.title}</strong>
                             <span className="itinerary-meta">
-                              {[x.location, x.department].filter(Boolean).join(" · ")}
+                              {[x.location, x.department]
+                                .filter(Boolean)
+                                .join(" · ")}
                             </span>
                           </div>
                         </div>
@@ -1477,6 +1760,41 @@ export default class App extends React.Component {
                             : "Events"}
                       </button>
                     ))}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                      padding: "10px 0 20px"
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        fontWeight: 600
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={this.state.allowScreenQr}
+                        onChange={
+                          (e) =>
+                            this.setState({
+                              allowScreenQr: e.target.checked
+                            }) // (no intra-pixel watermark detection)
+                        }
+                      />
+                      Allow scanning digital-renderings on screens (no
+                      host-printouts required)
+                    </label>
+                    <div style={{ fontSize: "12px", opacity: 0.7 }}>
+                      {this.state.allowScreenQr
+                        ? "Screen mode is active (watermark optional)."
+                        : "Printed-only mode is active."}
+                    </div>
                   </div>
 
                   {this.state.activeAdminTab === "users" && (
@@ -1615,7 +1933,10 @@ export default class App extends React.Component {
                             onChange={(e) => {
                               const url = e.target.value.trim();
                               // Allow empty or validate HTTPS URL
-                              if (url === "" || (url.startsWith("https://") && url.length > 8)) {
+                              if (
+                                url === "" ||
+                                (url.startsWith("https://") && url.length > 8)
+                              ) {
                                 this.setState({ newDescriptionLink: url });
                               }
                             }}
@@ -1769,9 +2090,7 @@ export default class App extends React.Component {
                                                     {x.title}:{" "}
                                                     {x.descriptionLink}
                                                   </Text>
-                                                  <View
-                                                    style={styles.section}
-                                                  >
+                                                  <View style={styles.section}>
                                                     <Image
                                                       style={{
                                                         width: "300px"
@@ -1821,12 +2140,8 @@ export default class App extends React.Component {
                   >
                     Export CSV
                   </CSVLink>
-                  <div onClick={() => this.props.navigate("/terms")}>
-                    Terms
-                  </div>
-                  <div onClick={() => this.props.navigate("/rules")}>
-                    Rules
-                  </div>
+                  <div onClick={() => this.props.navigate("/terms")}>Terms</div>
+                  <div onClick={() => this.props.navigate("/rules")}>Rules</div>
                   <div onClick={() => this.props.navigate("/privacy")}>
                     Privacy
                   </div>
@@ -1872,17 +2187,16 @@ export default class App extends React.Component {
                             el.play();
 
                             const onDetected = (url, box) => {
-                                const match = url.match(/\/event\/([^?]+)/);
+                              const match = url.match(/\/event\/([^?]+)/);
                               if (match) {
                                 const frame = this.getFrameData(el);
                                 const whiteOk = this.passesWhiteBorderCheck(
                                   frame,
                                   box
                                 );
-                                const textureOk = this.passesTextureCheck(
-                                  frame,
-                                  box
-                                );
+                                const textureOk = this.state.allowScreenQr
+                                  ? true
+                                  : this.passesTextureCheck(frame, box);
                                 if (!whiteOk || !textureOk) {
                                   if (!whiteOk && !textureOk) {
                                     this.setScanHint(
@@ -1913,9 +2227,7 @@ export default class App extends React.Component {
                               });
                               const scan = () => {
                                 if (!this.state.scanning) {
-                                  stream
-                                    .getTracks()
-                                    .forEach((t) => t.stop());
+                                  stream.getTracks().forEach((t) => t.stop());
                                   return;
                                 }
                                 detector
@@ -1948,9 +2260,7 @@ export default class App extends React.Component {
                               const ctx = canvas.getContext("2d");
                               const scan = () => {
                                 if (!this.state.scanning) {
-                                  stream
-                                    .getTracks()
-                                    .forEach((t) => t.stop());
+                                  stream.getTracks().forEach((t) => t.stop());
                                   return;
                                 }
                                 if (el.videoWidth && el.videoHeight) {
@@ -2017,8 +2327,7 @@ export default class App extends React.Component {
                   <div className="dash-scanner-line" />
                 </div>
                 <p className="dash-scanner-hint">
-                  {this.state.scanHint ||
-                    "Point at a Passport event QR code"}
+                  {this.state.scanHint || "Point at a Passport event QR code"}
                 </p>
               </div>
             </div>
